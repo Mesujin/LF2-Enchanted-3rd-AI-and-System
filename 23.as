@@ -10,6 +10,7 @@
 
 //AI Configuration
  //In-game Settings
+  int RandomItemsFromTheSky;
   int BattleTimer;
   int RoundBattle;
   int ConsoleDebug;
