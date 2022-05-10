@@ -40,20 +40,20 @@
   double TeaTotalRestorationRatio  = 0.8     ;//Amount of Tea's that could heals, scaling to character's MaxHP.  {Default = 0.8}
   double TeaRestorationPer1TU      = 0.002   ;//Amount of Tea's regeneration each TU.                            {Default = 0.002}
 
-  double DamageElement      = 100.040        ;//Percentage to the HP and DHP. (XXX.YYY : XXX = HP, YYY = DHP) {Default = 100.04}
-  double TrueDamageElement  = 100.100        ;//Percentage to the HP and DHP. (XXX.YYY : XXX = HP, YYY = DHP) {Default = 100.1} 
-  double BurstDamageElement = 100.0          ;//Percentage to the HP and DHP. (XXX.YYY : XXX = HP, YYY = DHP) {Default = 100} 
-  double InnerDamageElement = 0.100          ;//Percentage to the HP and DHP. (XXX.YYY : XXX = HP, YYY = DHP) {Default = 0.1}
+  double DamageElement      = 100.040        ;//Percentage to the HP and DHP. (XXX.YYY : XXX = HP, YYY = DHP) {Default = 100.040}
+  double TrueDamageElement  = 100.100        ;//Percentage to the HP and DHP. (XXX.YYY : XXX = HP, YYY = DHP) {Default = 100.100} 
+  double BurstDamageElement = 100.000        ;//Percentage to the HP and DHP. (XXX.YYY : XXX = HP, YYY = DHP) {Default = 100.000} 
+  double InnerDamageElement = 000.100        ;//Percentage to the HP and DHP. (XXX.YYY : XXX = HP, YYY = DHP) {Default = 000.100}
   
   bool IncludeAJADDJAsACast = false          ;//Include AJ, AD, and DJ as a Cast?                              {Default = false}
   int InputCastWait         = 0              ;//Wait time for next Input to Cast. (0 = No wait.) (Limit = 999) {Default = 0}
   int InputRunWait          = 10             ;//Wait time for next Input to Run. (0 = No wait.) (Limit = 999)  {Default = 10}
 
-  double HighFallDamage        = 50.0        ;//The damage taken by victim when High Fall property activated. (XXX.Y : XXX = Amount, Y = Damage Type {0 = Damage; 1 = True Damage; 2 = Burst Damage; 3 = Inner Damage;})   {Default = 50}
-  double MediumFallDamage      = 15.0        ;//The damage taken by victim when Medium Fall property activated. (XXX.Y : XXX = Amount, Y = Damage Type {0 = Damage; 1 = True Damage; 2 = Burst Damage; 3 = Inner Damage;}) {Default = 15}
+  double HighFallDamage        = 50.0        ;//The damage taken by victim when High Fall property activated.   (XXX.Y : XXX = Amount, Y = Damage Type {0 = Damage; 1 = True Damage; 2 = Burst Damage; 3 = Inner Damage;}) {Default = 50.0}
+  double MediumFallDamage      = 15.0        ;//The damage taken by victim when Medium Fall property activated. (XXX.Y : XXX = Amount, Y = Damage Type {0 = Damage; 1 = True Damage; 2 = Burst Damage; 3 = Inner Damage;}) {Default = 15.0}
   double VelocityForHighFall   = 40          ;//The minimum velocity to activate High Fall Property.                                                                                                                       {Default = 40}
   double VelocityForMediumFall = 10          ;//The minimum velocity to activate Medium Fall Property.                                                                                                                     {Default = 10}
-  double BounceDamage          = 30.0        ;//The damage taken by victim when Bounce property activated. (XXX.Y : XXX = Amount, Y = Damage Type {0 = Damage; 1 = True Damage; 2 = Burst Damage; 3 = Inner Damage;})      {Default = 30}
+  double BounceDamage          = 30.0        ;//The damage taken by victim when Bounce property activated.      (XXX.Y : XXX = Amount, Y = Damage Type {0 = Damage; 1 = True Damage; 2 = Burst Damage; 3 = Inner Damage;}) {Default = 30.0}
   double BounceVelRatio        = 0.3         ;//Reflected velocity by Bounce effect.                                                                                                                                       {Default = 0.3}
 
   double StageDifficultyModifier = 0.25      ;//HP, DHP, and Damage modifier by difficulty. (Easy = 1 - 2X)(Normal = 1 - X)(Difficult/Crazy = 1) {Default = 0.25}
