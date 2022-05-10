@@ -1,12 +1,16 @@
- ////////////////////////////////////////////////////////////////////////////////////////////
- // Universal AI for LF2ET, by Mesujin.                                                    //
- // Ver. 0.81.220401                                                                       //
- //                                                                                        //
- // Do not modify if you don't know what you're gonna modify!                              //
- // If you know what you're gonna modify, then have fun modifiying. ;3                     //
- //                                                                                        //
- // Credit: ddraw.dll by Lord Silva(Boop), Som1Lse, and everyone who take an effort in it. //
- ////////////////////////////////////////////////////////////////////////////////////////////
+ ////////////////////////////////////////////////////////////////////////////////////////////////
+ // Universal AI for LF2ET, by Mesujin.                                                        //
+ // Ver. 0.81.220401                                                                           //
+ //                                                                                            //
+ // Do not modify if you don't know what you're gonna modify!                                  //
+ // If you know what you're gonna modify, then have fun modifiying. ;3                         //
+ // You did better to turn off the "Word Wrap" setting to get better look to the code. XD      //
+ // ..normally, "Alt + Z" is the default shortcut for "Word Wrap" (if you don't know where is) //
+ //                                                                                            //
+ // Credit: ddraw.dll by Lord Silva(Boop), Som1Lse, and everyone who take an effort in it.     //
+ // Repository: https://github.com/Mesujin/LF2-Enchanted-3rd-AI-and-System                     //
+ // The right of this AI belong to Mesujin :P this's mine :<                                   //
+ ////////////////////////////////////////////////////////////////////////////////////////////////
 
 //AI Configuration
  //In-game Settings
@@ -463,5 +467,5 @@
   int Iabs(int Varb01){if(Varb01 < 0) return (-Varb01); return Varb01;}
   int Fabs(float Varb01){if(Varb01 < 0) return (-Varb01); return Varb01;}
   int Dabs(double Varb01){if(Varb01 < 0) return (-Varb01); return Varb01;}
- //-//
+ //-// //MainEnd
 //-//
