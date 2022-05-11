@@ -1,16 +1,16 @@
- ////////////////////////////////////////////////////////////////////////////////////////////////
- // Universal AI for LF2ET, by Mesujin.                                                        //
- // Ver. 0.81.220401                                                                           //
- //                                                                                            //
- // Do not modify if you don't know what you're gonna modify!                                  //
- // If you know what you're gonna modify, then have fun modifiying. ;3                         //
- // You did better to turn off the "Word Wrap" setting to get better look to the code. XD      //
- // ..normally, "Alt + Z" is the default shortcut for "Word Wrap" (if you don't know where is) //
- //                                                                                            //
- // Credit: ddraw.dll by Lord Silva(Boop), Som1Lse, and everyone who take an effort in it.     //
- // Repository: https://github.com/Mesujin/LF2-Enchanted-3rd-AI-and-System                     //
- // The right of this AI belong to Mesujin :P this's mine :<                                   //
- ////////////////////////////////////////////////////////////////////////////////////////////////
+ //////////////////////////////////////////////////////////////////////////////////////////////////
+ // Universal AI and Basic System for LF2ET, by Mesujin.                                         //
+ // Ver. 0.81.220401                                                                             //
+ //                                                                                              //
+ // Do not modify if you don't know what you're gonna modify!                                    //
+ // If you know what you're gonna modify, then have fun modifiying. ;3                           //
+ // You did better to turn off the "Word Wrap" setting to get better look to the code. XD        //
+ // ..normally, "Alt + Z" is the default shortcut for "Word Wrap" (if you don't know where is)   //
+ //                                                                                              //
+ // Credit: ddraw.dll by Lord Silva(Boop), Som1Lse, and everyone who take an effort in it.       //
+ // Repository: https://github.com/Mesujin/LF2-Enchanted-3rd-AI-and-System (More readable there) //
+ // The right of this AI belong to Mesujin :P this's mine :<                                     //
+ //////////////////////////////////////////////////////////////////////////////////////////////////
 
 //AI Configuration
  //In-game Settings
@@ -25,7 +25,7 @@
   int MaximumFrame  = 400                    ;//In case using an .exe were the Maximum Frame of an object are modified. (Limit = 998; Either My code nor the game didn't support for more than 998 Max Frame.)
 
   double PrespectiveRatio = 0.4              ;//Modifing this one isn't recomended tbh, this one has a deal with alot things. {Default = 0.4}
-  int YAxisSingularity    = 1000             ;//                                           {ddraw.dll modifiyng are Required} {Default = 1000}
+  int YAxisSingularity    = 1000             ;//           {ddraw.dll modifiyng are required, just search "YAxisSingularity"} {Default = 1000}
 
   double NaturalHPRegenPer3TU        = 0.2   ;//Natural HP Regeneration.                           {Default = 0.2}
   double NaturalDHPRegenPer3TU       = 0     ;//Natural DHP Regeneration.                          {Default = 0}
