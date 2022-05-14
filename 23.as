@@ -5,7 +5,7 @@
  // Do not modify if you don't know what you're gonna modify!                                    //
  // If you know what you're gonna modify, then have fun modifiying. ;3                           //
  // You did better to turn off the "Word Wrap" setting to get better look to the code. XD        //
- // ..normally, "Alt + Z" is the default shortcut for "Word Wrap" (if you don't know where is)   //
+ // ..normally, "Alt + Z" is the default shortcut for "Word Wrap" (if you don't know where it)   //
  //                                                                                              //
  // Credit: ddraw.dll by Lord Silva(Boop), Som1Lse, and everyone who take an effort in it.       //
  // Repository: https://github.com/Mesujin/LF2-Enchanted-3rd-AI-and-System (More readable there) //
@@ -17,12 +17,18 @@
   int RandomItemsFromTheSky;
   int BattleTimer;
   int RoundBattle;
-  int ConsoleDebug;
+
+  //Windows Console API - Debug Console
+   bool ConsoleDebug = true   ;//Set ConsoleDebug into 'true' to activate the Debug Console that would helpful in modding the game                                                                   {Default = false}
+   int16 ConsoleRate = 0      ;//Sometimes the Console might causing some lag, so increasing the ConsoleRate would nice.                                                                 {Limit = 9} {Default = 0}
+   int8 ConsoleDeCon = 0      ;//Default controller in controlling the Debug Menu. (0 = Non-default control)                                                                             {Limit = 8} {Default = 0}
+   int ConsoleBuffer = 80    ;//The buffer size of the Console. ("Right Click" on the Console's title bar > Properties > Layout > Screen Buffer Size > Width) {Available value : 60; 80; 100; 120;} {Default = 100}
+  //-//
  //-//
 
  //System
   int MaximumObjNum = 400                    ;//In case using an .exe were the Maximum Objects in the layer are modified. (Tho the ddraw.dll itself didn't support this i guess.)
-  int MaximumFrame  = 400                    ;//In case using an .exe were the Maximum Frame of an object are modified. (Limit = 998; Either My code nor the game didn't support for more than 998 Max Frame.)
+  int MaximumFrame  = 400                    ;//In case using an .exe were the Maximum Frame of an object are modified. {Limit = 998; Either My code nor the game didn't support for more than 998 Max Frame.}
 
   double PrespectiveRatio = 0.4              ;//Modifing this one isn't recomended tbh, this one has a deal with alot things. {Default = 0.4}
   int YAxisSingularity    = 1000             ;//           {ddraw.dll modifiyng are required, just search "YAxisSingularity"} {Default = 1000}
@@ -86,30 +92,35 @@
   double Type0MXGravity = 0.2                ;//Type0's midair X-axis Gravity/Velocity reduction per 1 TU. {Default = 0.2}
   double Type0MYGravity = 1.85               ;//Type0's midair Y-axis Gravity/Velocity reduction per 1 TU. {Default = 1.7}
 
-  double Type1GXGravity = 1.7;
-  double Type1GYGravity = 0;
-  double Type1MXGravity = 0.2;
-  double Type1MYGravity = 1.85;
+  double Type1GXGravity = 0                  ;//Type1's ground X-axis Gravity/Velocity reduction per 1 TU. {Default = }
+  double Type1GYGravity = 0                  ;//Type1's ground Y-axis Gravity/Velocity reduction per 1 TU. {Default = }
+  double Type1MXGravity = 0                  ;//Type1's midair X-axis Gravity/Velocity reduction per 1 TU. {Default = }
+  double Type1MYGravity = 0                  ;//Type1's midair Y-axis Gravity/Velocity reduction per 1 TU. {Default = }
 
-  double Type2GXGravity = 1.7;
-  double Type2GYGravity = 0;
-  double Type2MXGravity = 0.2;
-  double Type2MYGravity = 1.85;
+  double Type2GXGravity = 0                  ;//Type2's ground X-axis Gravity/Velocity reduction per 1 TU. {Default = }
+  double Type2GYGravity = 0                  ;//Type2's ground Y-axis Gravity/Velocity reduction per 1 TU. {Default = }
+  double Type2MXGravity = 0                  ;//Type2's midair X-axis Gravity/Velocity reduction per 1 TU. {Default = }
+  double Type2MYGravity = 0                  ;//Type2's midair Y-axis Gravity/Velocity reduction per 1 TU. {Default = }
 
   double Type3GXGravity = 0                  ;//Type3's ground X-axis Gravity/Velocity reduction per 1 TU. {Default = 0} (Modifiying this one might causing a bug..)
   double Type3GYGravity = 0                  ;//Type3's ground Y-axis Gravity/Velocity reduction per 1 TU. {Default = 0} (Modifiying this one might causing a bug..)
   double Type3MXGravity = 0                  ;//Type3's midair X-axis Gravity/Velocity reduction per 1 TU. {Default = 0} (Modifiying this one might causing a bug..)
   double Type3MYGravity = 0                  ;//Type3's midair Y-axis Gravity/Velocity reduction per 1 TU. {Default = 0} (Modifiying this one might causing a bug..)
 
-  double Type4GXGravity = 1.7;
-  double Type4GYGravity = 0;
-  double Type4MXGravity = 0.2;
-  double Type4MYGravity = 1.85;
+  double Type4GXGravity = 0                  ;//Type4's ground X-axis Gravity/Velocity reduction per 1 TU. {Default = }
+  double Type4GYGravity = 0                  ;//Type4's ground Y-axis Gravity/Velocity reduction per 1 TU. {Default = }
+  double Type4MXGravity = 0                  ;//Type4's midair X-axis Gravity/Velocity reduction per 1 TU. {Default = }
+  double Type4MYGravity = 0                  ;//Type4's midair Y-axis Gravity/Velocity reduction per 1 TU. {Default = }
 
-  double Type5GXGravity = 1.7;
-  double Type5GYGravity = 0;
-  double Type5MXGravity = 0.2;
-  double Type5MYGravity = 1.85;
+  double Type5GXGravity = 0                  ;//Type5's ground X-axis Gravity/Velocity reduction per 1 TU. {Default = }
+  double Type5GYGravity = 0                  ;//Type5's ground Y-axis Gravity/Velocity reduction per 1 TU. {Default = }
+  double Type5MXGravity = 0                  ;//Type5's midair X-axis Gravity/Velocity reduction per 1 TU. {Default = }
+  double Type5MYGravity = 0                  ;//Type5's midair Y-axis Gravity/Velocity reduction per 1 TU. {Default = }
+
+  double Type6GXGravity = 0                  ;//Type6's ground X-axis Gravity/Velocity reduction per 1 TU. {Default = }
+  double Type6GYGravity = 0                  ;//Type6's ground Y-axis Gravity/Velocity reduction per 1 TU. {Default = }
+  double Type6MXGravity = 0                  ;//Type6's midair X-axis Gravity/Velocity reduction per 1 TU. {Default = }
+  double Type6MYGravity = 0                  ;//Type6's midair Y-axis Gravity/Velocity reduction per 1 TU. {Default = }
  //-//
 //-//
 
@@ -126,15 +137,16 @@
   array < int > Database_Cast = MaximumObjNum;
   array < int > Database_Dash = MaximumObjNum;
   array < int > Database_TimeStop = MaximumObjNum;
-  array < int > Database_OpoFrame = MaximumObjNum;
+  array < int16 > Database_OpoFrame = MaximumObjNum;
   array < double > Database_ToGround = MaximumObjNum;
   array < double > Database_Status = MaximumObjNum * 12; //HP/Shield; DHP; MP/EP; X; Y; Z; Vel_X; Vel_Y; Vel_Z; Speed_Multipler; DMG_Multipler; DMGTaken_Multipler;
   int NumberOfExist;
   int NumberOfExistCon;
   int NumberOfExistT0;
   int NumberOfExistT0Com;
-  int ElapsedTime;
   int EXRatio;
+  int64 ElapsedTime;
+  int8 RandomSingleFontCount;
   bool InBattle;
  //-//
  
@@ -157,13 +169,13 @@
   void Controller(int Varb0001)
   {
    InBattle = false;
-   if(ConsoleDebug > 0){clr();} else {if(ConsoleDebug < 0) ConsoleDebug -= 1;}
-
    if(elapsed_time == 1)
    {
+    ElapsedTime = -6;
     InBattle = true;
    }
 
+   ElapsedTime += 1;
    NumberOfExist = 0; NumberOfExistCon = 0; NumberOfExistT0 = 0; NumberOfExistT0Com = 0;
    for(int Varb0003 = 0; Varb0003 < MaximumObjNum; ++Varb0003)
    {
@@ -224,6 +236,67 @@
      if(Database_Control[1] != game.objects[Database_ExistCon[Varb0004]].frame1){InBattle = true; Database_Control[1] = game.objects[Database_ExistCon[Varb0004]].frame1;}
     }
    }
+
+   //Console Menu
+   if(ConsoleDebug)
+   {
+    int Varb1000 = elapsed_time % 60; int Varb1002 = ElapsedTime % 35;
+    switch(ConsoleBuffer)
+    {
+     case 60: print("\n|============ "); break;
+     case 80: print("\n|====================== "); break;
+     case 100: print("\n|================================ "); break;
+     case 120: print("\n|========================================== "); break;
+     default: ConsoleBuffer = 100; print("\n|================================ "); break;
+    }
+    if(Varb1000 == 0 || Varb1002 == 0){RandomSingleFont();} else {print("D");}
+    if(Varb1000 == 1 || Varb1002 == 1){RandomSingleFont();} else {print("e");}
+    if(Varb1000 == 2 || Varb1002 == 2){RandomSingleFont();} else {print("b");}
+    if(Varb1000 == 3 || Varb1002 == 3){RandomSingleFont();} else {print("u");}
+    if(Varb1000 == 4 || Varb1002 == 4){RandomSingleFont();} else {print("g");}
+    if(Varb1000 == 5 || Varb1002 == 5){RandomSingleFont();} else {print(" ");}
+    if(Varb1000 == 6 || Varb1002 == 6){RandomSingleFont();} else {print("M");}
+    if(Varb1000 == 7 || Varb1002 == 7){RandomSingleFont();} else {print("e");}
+    if(Varb1000 == 8 || Varb1002 == 8){RandomSingleFont();} else {print("n");}
+    if(Varb1000 == 9 || Varb1002 == 9){RandomSingleFont();} else {print("u");}
+    if(Varb1000 == 10 || Varb1002 == 10){RandomSingleFont();} else {print(" ");}
+    if(Varb1000 == 11 || Varb1002 == 11){RandomSingleFont();} else {print("-");}
+    if(Varb1000 == 12 || Varb1002 == 12){RandomSingleFont();} else {print(" ");}
+    if(Varb1000 == 13 || Varb1002 == 13){RandomSingleFont();} else {print("V");}
+    if(Varb1000 == 14 || Varb1002 == 14){RandomSingleFont();} else {print("e");}
+    if(Varb1000 == 15 || Varb1002 == 15){RandomSingleFont();} else {print("r");}
+    if(Varb1000 == 16 || Varb1002 == 16){RandomSingleFont();} else {print("s");}
+    if(Varb1000 == 17 || Varb1002 == 17){RandomSingleFont();} else {print("i");}
+    if(Varb1000 == 18 || Varb1002 == 18){RandomSingleFont();} else {print("o");}
+    if(Varb1000 == 19 || Varb1002 == 19){RandomSingleFont();} else {print("n");}
+    if(Varb1000 == 20 || Varb1002 == 20){RandomSingleFont();} else {print(" ");}
+    if(Varb1000 == 21 || Varb1002 == 21){RandomSingleFont();} else {print("0");}
+    if(Varb1000 == 22 || Varb1002 == 22){RandomSingleFont();} else {print(".");}
+    if(Varb1000 == 23 || Varb1002 == 23){RandomSingleFont();} else {print("8");}
+    if(Varb1000 == 24 || Varb1002 == 24){RandomSingleFont();} else {print("1");}
+    if(Varb1000 == 25 || Varb1002 == 25){RandomSingleFont();} else {print(".");}
+    if(Varb1000 == 26 || Varb1002 == 26){RandomSingleFont();} else {print("2");}
+    if(Varb1000 == 27 || Varb1002 == 27){RandomSingleFont();} else {print("2");}
+    if(Varb1000 == 28 || Varb1002 == 28){RandomSingleFont();} else {print("0");}
+    if(Varb1000 == 29 || Varb1002 == 29){RandomSingleFont();} else {print("5");}
+    if(Varb1000 == 30 || Varb1002 == 30){RandomSingleFont();} else {print("1");}
+    if(Varb1000 == 31 || Varb1002 == 31){RandomSingleFont();} else {print("2");}
+    switch(ConsoleBuffer)
+    {
+     case 60: print(" ============| "); break;
+     case 80: print(" ======================| "); break;
+     case 100: print(" ================================| "); break;
+     case 120: print(" ==========================================| "); break;
+    }
+    if(!InBattle)
+    {
+     print("Waiting for a battle..");
+    } else
+    { 
+
+    }
+   }
+   //-//
 
    if(InBattle) for(int Varb0002 = 0; Varb0002 < 10; ++Varb0002)
    {
@@ -383,7 +456,7 @@
  //Final Control
   void SystemControl()
   {
-   print(InBattle+"\n");
+   print(InBattle);
 
    for(int Varb0006 = 0; Varb0006 < NumberOfExist; ++Varb0006)
    {
@@ -408,6 +481,39 @@
        }
       }
    }
+
+   switch(ConsoleBuffer)
+   {
+    case 60: print("\n|==================== "); break;
+    case 80: print("\n|============================== "); break;
+    case 100: print("\n|======================================== "); break;
+    case 120: print("\n|================================================== "); break;
+   }
+    int Varb1000 = elapsed_time % 70; int Varb1002 = (ElapsedTime + 35) % 70;
+    if(Varb1000 == 0 || Varb1002 == 19){RandomSingleFont();} else {print("D");}
+    if(Varb1000 == 2 || Varb1002 == 33){RandomSingleFont();} else {print("e");}
+    if(Varb1000 == 1 || Varb1002 == 5){RandomSingleFont();} else {print("b");}
+    if(Varb1000 == 3 || Varb1002 == 11){RandomSingleFont();} else {print("u");}
+    if(Varb1000 == 4 || Varb1002 == 31){RandomSingleFont();} else {print("g");}
+    if(Varb1000 == 7 || Varb1002 == 12){RandomSingleFont();} else {print(" ");}
+    if(Varb1000 == 9 || Varb1002 == 13){RandomSingleFont();} else {print("b");}
+    if(Varb1000 == 2 || Varb1002 == 24){RandomSingleFont();} else {print("y");}
+    if(Varb1000 == 16 || Varb1002 == 27){RandomSingleFont();} else {print(" ");}
+    if(Varb1000 == 34 || Varb1002 == 16){RandomSingleFont();} else {print("M");}
+    if(Varb1000 == 6 || Varb1002 == 29){RandomSingleFont();} else {print("e");}
+    if(Varb1000 == 28 || Varb1002 == 14){RandomSingleFont();} else {print("s");}
+    if(Varb1000 == 25 || Varb1002 == 15){RandomSingleFont();} else {print("u");}
+    if(Varb1000 == 22 || Varb1002 == 16){RandomSingleFont();} else {print("j");}
+    if(Varb1000 == 19 || Varb1002 == 26){RandomSingleFont();} else {print("i");}
+    if(Varb1000 == 30 || Varb1002 == 8){RandomSingleFont();} else {print("n");}
+   switch(ConsoleBuffer)
+   {
+    case 60: print(" ====================|"); break;
+    case 80: print(" ==============================|"); break;
+    case 100: print(" ========================================|"); break;
+    case 120: print(" ==================================================|"); break;
+   }
+   if(ConsoleDebug){printOut();} else {printLogClear();}
   }
  //-//
 
@@ -465,7 +571,62 @@
    return false;
   }
   int Iabs(int Varb01){if(Varb01 < 0) return (-Varb01); return Varb01;}
-  int Fabs(float Varb01){if(Varb01 < 0) return (-Varb01); return Varb01;}
-  int Dabs(double Varb01){if(Varb01 < 0) return (-Varb01); return Varb01;}
+  float Fabs(float Varb01){if(Varb01 < 0) return (-Varb01); return Varb01;}
+  double Dabs(double Varb01){if(Varb01 < 0) return (-Varb01); return Varb01;}
+  void RandomSingleFont()
+  {
+   RandomSingleFontCount += 1;
+   if(RandomSingleFontCount > 50) RandomSingleFontCount = 0;
+   switch(RandomSingleFontCount)
+   {
+    case 0: print("A"); break;
+    case 1: print("&"); break;
+    case 2: print("0"); break;
+    case 3: print("^"); break;
+    case 4: print("z"); break;
+    case 5: print("H"); break;
+    case 6: print("7"); break;
+    case 7: print("#"); break;
+    case 8: print("!"); break;
+    case 9: print("b"); break;
+    case 10: print("%"); break;
+    case 11: print("@"); break;
+    case 12: print("n"); break;
+    case 13: print("("); break;
+    case 14: print("E"); break;
+    case 15: print("l"); break;
+    case 16: print("q"); break;
+    case 17: print(")"); break;
+    case 18: print(" "); break;
+    case 19: print("D"); break;
+    case 20: print("e"); break;
+    case 21: print("6"); break;
+    case 22: print("0"); break;
+    case 23: print("1"); break;
+    case 24: print("0"); break;
+    case 25: print("1"); break;
+    case 26: print("*"); break;
+    case 27: print("="); break;
+    case 28: print("V"); break;
+    case 29: print("/"); break;
+    case 30: print("N"); break;
+    case 31: print("i"); break;
+    case 32: print("n"); break;
+    case 33: print("\\"); break;
+    case 34: print("G"); break;
+    case 35: print("}"); break;
+    case 36: print("b"); break;
+    case 37: print("["); break;
+    case 38: print("g"); break;
+    case 39: print("o"); break;
+    case 40: print(";"); break;
+    case 41: print("<"); break;
+    case 42: print("x"); break;
+    case 43: print("'"); break;
+    case 44: print("?"); break;
+    case 45: print("?"); break;
+    default: print(" "); break;
+   }
+  }
  //-// //MainEnd
 //-//
