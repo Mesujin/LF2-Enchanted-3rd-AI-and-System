@@ -12,7 +12,7 @@
  // The right of this AI belong to Mesujin :P this's mine :<                                     //
  //////////////////////////////////////////////////////////////////////////////////////////////////
 
-//Configuration
+//Configuration (The Value must be Positive!) (If there's no "Limit", then the "Limit" is their Data Type limit.)
  //In-game Settings (Only purposed for default setting, the values are carried in the data save.)
   bool FixedInput           = false  ;//
   bool FlawlessInput        = true   ;//
@@ -29,12 +29,10 @@
   int ConsoleBuffer = 120    ;//The buffer size of the Console. ("Right Click" on the Console's title bar > Properties > Layout > Screen Buffer Size > Width) {Available value : 60; 80; 100; 120;} {Default = 100}
  //-//
 
- //System Configuration (The Value must be Positive!) (If there's no "Limit", then the "Limit" is their Data Type limit.)
+ //Main Configuration
   int MaximumObjNum = 400                    ;//In case using an .exe were the Maximum Objects in the layer are modified. (Tho the ddraw.dll itself didn't support this, i guess.) {Default = 400}
   int MaximumFrame  = 400                    ;//In case using an .exe were the Maximum Frame of an object are modified.                                              {Limit = 998} {Default = 400}
-
-  double PrespectiveRatio = 0.4              ;//Prespective of X-Axis to Z-Axis.                 {Default = 0.4} {Modify might causing a bug.}
-  int YAxisSingularity    = 1000             ;//The singularity data of Y-Axis. {Minimum = 1000} {Default = 1000} {ddraw.dll modifying are required, just search "YAxisSingularity"}
+  double PrespectiveRatio = 0.4              ;//Prespective of X-Axis to Z-Axis.                                                                                                   {Default = 0.4} {Modify might causing a bug.}
 
   double NaturalHPRegenPer3TU        = 0.2   ;//Natural HP Regeneration.                           {Default = 0.2}
   double NaturalDHPRegenPer3TU       = 0     ;//Natural DHP Regeneration.                          {Default = 0}
@@ -64,8 +62,8 @@
   uint64 InputCastWait        = 0            ;//Wait time for next Input to Cast. (0 = No wait.) {Limit = 99} {Default = 0}
   uint64 InputRunWait         = 10           ;//Wait time for next Input to Run.  (0 = No wait.) {Limit = 99} {Default = 10}
   uint64 SingleCastAvail      = 6            ;//Available time for single Input.  (0 = Always.)  {Limit = 99} {Default = 6}
-  uint64 CastAvail            = 0            ;//Available time for Cast. (0 = Always.)           {Limit = 99} {Default = 0}
-  uint64 RunAvail             = 6            ;//Available time for Run. (0 = Always.)            {Limit = 99} {Default = 6}
+  uint64 CastAvail            = 0            ;//Available time for Cast.          (0 = Always.)  {Limit = 99} {Default = 0}
+  uint64 RunAvail             = 6            ;//Available time for Run.           (0 = Always.)  {Limit = 99} {Default = 6}
   uint16 AJADDJOffside        = 3            ;//The TU Offside for AJ, AD, or DJ.                             {Default = 3}
 
   double LandingSpeedReduction = 0.3         ;//X-Vel and Z-Vel reduction when landing.                                                                                                                                  {Default = 0.3}
@@ -1932,12 +1930,25 @@
     for(Varb0001 = 0; Varb0001 < NumberOfExist; ++Varb0001)
     {
      Control_XR(Database_Exist[Varb0001], Rounding(Database_Status[(Database_Exist[Varb0001] * 12) + 3]));
-     Control_YR(Database_Exist[Varb0001], Rounding(Database_Status[(Database_Exist[Varb0001] * 12) + 4] - YAxisSingularity - (Database_Status[(Database_Exist[Varb0001] * 12) + 4] + Database_ToGround[Database_Exist[Varb0001]])));
+     Control_YR(Database_Exist[Varb0001], Rounding(Database_Status[(Database_Exist[Varb0001] * 12) + 4] - (Database_Status[(Database_Exist[Varb0001] * 12) + 4] + Database_ToGround[Database_Exist[Varb0001]])));
      Control_ZR(Database_Exist[Varb0001], Rounding(Database_Status[(Database_Exist[Varb0001] * 12) + 5] + (Database_Status[(Database_Exist[Varb0001] * 12) + 4] + Database_ToGround[Database_Exist[Varb0001]])));
      Control_VX(Database_Exist[Varb0001], 0);
      Control_VY(Database_Exist[Varb0001], 0);
      Control_VZ(Database_Exist[Varb0001], 0);
      Control_PicNReserve(Database_Exist[Varb0001], 0, 0);
+     if(Database_HitLag[Database_Exist[Varb0001]] < 0)
+     {
+      Control_Shake(Database_Exist[Varb0001], (Database_HitLag[Database_Exist[Varb0001]] % 2) - 1);
+     } else
+     { 
+      if(Database_HitLag[Database_Exist[Varb0001]] > 0)
+      {
+       Control_Shake(Database_Exist[Varb0001], (Database_HitLag[Database_Exist[Varb0001]] % 2) + 1);
+      } else
+      {
+       Control_Shake(Database_Exist[Varb0001], 0);
+      }
+     }
     }
    //-//
 
