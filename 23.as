@@ -30,8 +30,9 @@
  //-//
 
  //Main Configuration
-  int MaximumObjNum = 400                    ;//In case using an .exe were the Maximum Objects in the layer are modified. (Tho the ddraw.dll itself didn't support this, i guess.) {Default = 400}
-  int MaximumFrame  = 400                    ;//In case using an .exe were the Maximum Frame of an object are modified.                                              {Limit = 998} {Default = 400}
+  int MaximumObjNum       = 400              ;//In case using an .exe were the Maximum Objects in the layer are modified. (Tho the ddraw.dll itself didn't support this, i guess.) {Default = 400}
+  int MaximumFrame        = 400              ;//In case using an .exe were the Maximum Frame of an object are modified.                                              {Limit = 998} {Default = 400}
+  double YSingularity     = 1000             ;//The singularity of Y-Axis.                                                                                        {Minimum = 1000} {Default = 1000}
   double PrespectiveRatio = 0.4              ;//Prespective of X-Axis to Z-Axis.                                                                                                   {Default = 0.4} {Modify might causing a bug.}
 
   double NaturalHPRegenPer3TU        = 0.2   ;//Natural HP Regeneration.                           {Default = 0.2}
@@ -153,160 +154,218 @@
 //Game-System
  //Memorized Variables
   array < int > Database_CameraZ = 3;
-  array < int > Database_Exist = MaximumObjNum;
-  array < int > Database_ExistCon = MaximumObjNum;
-  array < int > Database_ExistT0 = MaximumObjNum;
-  array < int > Database_ExistT0Com = MaximumObjNum;
   array < int > Database_TimeStop = MaximumObjNum;
-  array < int > Database_Output = MaximumObjNum;          // {(7)>++} (X)Attack; (X)Defend; (X)Jump; (X)Up; (X)Left; (X)Down; (X)Right;
+  array < uint > Database_Output = MaximumObjNum;         // {(7)>++} (X)Attack; (X)Defend; (X)Jump; (X)Up; (X)Left; (X)Down; (X)Right;
   array < bool > Database_Bounce = MaximumObjNum;
   array < int8 > Database_LastVel = MaximumObjNum;
   array < int8 > Database_HitLag = MaximumObjNum;
+  array < int16 > Database_Held = MaximumObjNum * 2;      // {>>} (+0)Held_1; (+1)Held_2;
+  array < int16 > Database_Owner = MaximumObjNum;
   array < int16 > Database_Target = MaximumObjNum;
-  array < int16 > Database_OpoFrame = MaximumObjNum;
-  array < int16 > Database_WalkSys = MaximumObjNum;       // {<++} (XXX)Wait; (X)Set;
+  array < int16 > Database_Exist = MaximumObjNum;
+  array < int16 > Database_ExistCon = MaximumObjNum;
+  array < int16 > Database_ExistT0 = MaximumObjNum;
+  array < int16 > Database_ExistNT0 = MaximumObjNum;
+  array < int16 > Database_ExistT0Com = MaximumObjNum;
+  array < int16 > Database_Cooldown = MaximumObjNum * 10; // {>>} (+0)Slot_0; (+1)Slot_1; (+2)Slot_2; (+3)Slot_3; (+4)Slot_4; (+5)Slot_5; (+6)Slot_6; (+7)Slot_7; (+8)Slot_8; (+9)Slot_9;
+  array < uint16 > Database_FirstFrame = MaximumObjNum;
+  array < uint16 > Database_Counter = MaximumObjNum;      // {<++} (XXX)Wait; (X)Set; // {<++} (XXXX)NT0's_Counter;
   array < uint16 > Database_Input = MaximumObjNum * 7;    // {>>} (+0)Attack; (+1)Defend; (+2)Jump; (+3)Up; (+4)Left; (+5)Down; (+6)Right;
   array < uint64 > Database_Cast = MaximumObjNum;         // {<++} (XX)Cast; (XX)Cast_Availablelity; (XX)Cast_Sequence; (XX)Cast_Wait; (X)Run; (XX)Run_Avaiablelity; (X)Run_Sequence; (XX)Run_Wait;
   array < double > Database_Summary = MaximumObjNum * 10; // {>>} (+0)Hero_Kill; (+1)Minion_Kill; (+2)DMG_Dealt; (+3)DHP_DMG_Dealt; (+4)DMG_Taken; (+5)DHP_DMG_Taken; (+6)HP_Usage; (+7)MP/EP_Usage; (+8)HP_Regen; (+9)Item_Pick;
   array < double > Database_ToGround = MaximumObjNum;
   array < double > Database_Status = MaximumObjNum * 12;  // {>>} (+0)HP/Shield; (+1)DHP; (+2)MP/EP; (+3)X; (+4)Y; (+5)Z; (+6)Vel_X; (+7)Vel_Y; (+8)Vel_Z; (+9)Speed_Multipler; (+10)DMG_Multipler; (+11)DMGTaken_Multipler;
   bool InBattle;
+  bool Randomize;
+  uint64 RandHigh = 0;
+  uint64 RandLow = 0;
   bool Database_Control01 = true;
   bool Database_Control02;
   int Database_Control03;
   int NumberOfExist;
   int NumberOfExistCon;
+  int NumberOfExistNT0;
   int NumberOfExistT0;
   int NumberOfExistT0Com;
   int8 RandomSingleFontCount;
   int64 ElapsedTime;
+  uint64 RandomizeSeed;
  //-//
  
- //Starting
+ //Main System
   void id(){loadTarget(self.num); ego();}
   void ego(){if(Database_Control01){Database_Control01 = false; Controller(self.num);} else {UnderControl(self.num);}}
- //-//
-
- //First Game-System
   void Controller(int Varb0001)
   {
-   int Varb0002; InBattle = false;
-
-   //First Declarament
-    if(elapsed_time == 1)
+   InBattle = false; int Varb0002;
+   //New Battle Reset
+    if(elapsed_time == 0)
     {
-     InBattle = true;
-     ElapsedTime = -6;
-     Database_CameraZ[0] = 0; Database_CameraZ[1] = 0; Database_CameraZ[2] = 0;
+     RandomizeSeed = rand(9) + (rand(9) * 10) + (rand(9) * 100) + (rand(9) * 1000) + (rand(9) * 10000) + (rand(9) * 100000) + (rand(9) * 1000000) + (rand(9) * 10000000) + (rand(9) * 100000000) + (rand(9) * 1000000000) + (rand(9) * 10000000000) + (rand(9) * 100000000000) + (rand(9) * 1000000000000);
+     Randomize = true; RandomSingleFontCount = 0; InBattle = true; Database_Control02 = true; ElapsedTime = -10;
      for(Varb0002 = 0; Varb0002 < MaximumObjNum; ++Varb0002)
-     if(loadTarget(Varb0002) == -1)
      {
-      Database_HitLag[Varb0002] = 0;
-      Database_LastVel[Varb0002] = 0;
-      Database_Cast[Varb0002] = 0;
-      Database_Output[Varb0002] = 0;
-      Database_Target[Varb0002] = -1;
-      Database_Bounce[Varb0002] = false;
-      Database_Status[(Varb0002 * 12) + 3] = -9999;
-      Database_Status[(Varb0002 * 12) + 4] = -9999;
-      Database_Status[(Varb0002 * 12) + 5] = -9999;
-      Database_Status[(Varb0002 * 12) + 6] = 0;
-      Database_Status[(Varb0002 * 12) + 7] = 0;
-      Database_Status[(Varb0002 * 12) + 8] = 0;
-      Database_Summary[(Varb0002 * 10)] = 0;
-      Database_Summary[(Varb0002 * 10) + 1] = 0;
-      Database_Summary[(Varb0002 * 10) + 2] = 0;
-      Database_Summary[(Varb0002 * 10) + 3] = 0;
-      Database_Summary[(Varb0002 * 10) + 4] = 0;
-      Database_Summary[(Varb0002 * 10) + 5] = 0;
-      Database_Summary[(Varb0002 * 10) + 6] = 0;
-      Database_Summary[(Varb0002 * 10) + 7] = 0;
-      Database_Summary[(Varb0002 * 10) + 8] = 0;
-      Database_Summary[(Varb0002 * 10) + 9] = 0;
-      Database_TimeStop[Varb0002] = 0;
-     } else
-     {
-      Database_HitLag[Varb0002] = 0;
-      Database_LastVel[Varb0002] = 0;
-      Database_Cast[Varb0002] = 0;
-      Database_Output[Varb0002] = 0;
-      Database_Target[Varb0002] = -1;
-      Database_Bounce[Varb0002] = false;
-      Database_Status[(Varb0002 * 12)] = game.objects[Varb0002].data.dash_height;
-      Database_Status[(Varb0002 * 12) + 1] = game.objects[Varb0002].data.dash_height;
-      if(SpecialityCheck(Varb0002, 1)){Database_Status[(Varb0002 * 12) + 2] = StartingEP;} else {Database_Status[(Varb0002 * 12) + 2] = StartingMP;}
-      Database_Status[(Varb0002 * 12) + 3] = game.objects[Varb0002].x_real;
-      Database_Status[(Varb0002 * 12) + 4] = game.objects[Varb0002].y_real - 400;
-      Database_Status[(Varb0002 * 12) + 5] = game.objects[Varb0002].z_real;
-      Database_Status[(Varb0002 * 12) + 6] = 0;
-      Database_Status[(Varb0002 * 12) + 7] = 0;
-      Database_Status[(Varb0002 * 12) + 8] = 0;
-      Database_Summary[(Varb0002 * 10)] = 0;
-      Database_Summary[(Varb0002 * 10) + 1] = 0;
-      Database_Summary[(Varb0002 * 10) + 2] = 0;
-      Database_Summary[(Varb0002 * 10) + 3] = 0;
-      Database_Summary[(Varb0002 * 10) + 4] = 0;
-      Database_Summary[(Varb0002 * 10) + 5] = 0;
-      Database_Summary[(Varb0002 * 10) + 6] = 0;
-      Database_Summary[(Varb0002 * 10) + 7] = 0;
-      Database_Summary[(Varb0002 * 10) + 8] = 0;
-      Database_Summary[(Varb0002 * 10) + 9] = 0;
-      Database_TimeStop[Varb0002] = 0;
+      if(loadTarget(Varb0002) != -1)
+      {
+       Database_Owner[Varb0002] = Varb0002;
+       Database_Status[(Varb0002 * 12)] = game.objects[Varb0002].data.dash_height;
+       Database_Status[(Varb0002 * 12) + 1] = game.objects[Varb0002].data.dash_height;
+       if(SpecialityCheck(Varb0002, 1)){Database_Status[(Varb0002 * 12) + 2] = StartingEP;} else {Database_Status[(Varb0002 * 12) + 2] = StartingMP;}
+       Database_Status[(Varb0002 * 12) + 3] = -999999;
+       Database_Status[(Varb0002 * 12) + 4] = -999999;
+       Database_Status[(Varb0002 * 12) + 5] = -999999;
+       Database_Cast[Varb0002] = 0;
+       Database_HitLag[Varb0002] = 0;
+       Database_Output[Varb0002] = 0;
+       Database_Target[Varb0002] = -1;
+       Database_LastVel[Varb0002] = 0;
+       Database_TimeStop[Varb0002] = 0;
+       Database_Bounce[Varb0002] = false;
+       Database_Held[(Varb0002 * 2) + 0] = -1;
+       Database_Held[(Varb0002 * 2) + 1] = -1;
+       Database_Input[(Varb0002 * 7) + 0] = 1;
+       Database_Input[(Varb0002 * 7) + 1] = 1;
+       Database_Input[(Varb0002 * 7) + 2] = 1;
+       Database_Input[(Varb0002 * 7) + 3] = 1;
+       Database_Input[(Varb0002 * 7) + 4] = 1;
+       Database_Input[(Varb0002 * 7) + 5] = 1;
+       Database_Input[(Varb0002 * 7) + 6] = 1;
+       Database_Status[(Varb0002 * 12) + 6] = 0;
+       Database_Status[(Varb0002 * 12) + 7] = 0;
+       Database_Status[(Varb0002 * 12) + 8] = 0;
+       Database_Summary[(Varb0002 * 10) + 0] = 0;
+       Database_Summary[(Varb0002 * 10) + 1] = 0;
+       Database_Summary[(Varb0002 * 10) + 2] = 0;
+       Database_Summary[(Varb0002 * 10) + 3] = 0;
+       Database_Summary[(Varb0002 * 10) + 4] = 0;
+       Database_Summary[(Varb0002 * 10) + 5] = 0;
+       Database_Summary[(Varb0002 * 10) + 6] = 0;
+       Database_Summary[(Varb0002 * 10) + 7] = 0;
+       Database_Summary[(Varb0002 * 10) + 8] = 0;
+       Database_Summary[(Varb0002 * 10) + 9] = 0;
+       Database_Cooldown[(Varb0002 * 10) + 0] = 0;
+       Database_Cooldown[(Varb0002 * 10) + 1] = 0;
+       Database_Cooldown[(Varb0002 * 10) + 2] = 0;
+       Database_Cooldown[(Varb0002 * 10) + 3] = 0;
+       Database_Cooldown[(Varb0002 * 10) + 4] = 0;
+       Database_Cooldown[(Varb0002 * 10) + 5] = 0;
+       Database_Cooldown[(Varb0002 * 10) + 6] = 0;
+       Database_Cooldown[(Varb0002 * 10) + 7] = 0;
+       Database_Cooldown[(Varb0002 * 10) + 8] = 0;
+       Database_Cooldown[(Varb0002 * 10) + 9] = 0;
+      }
      }
     }
    //-//
 
    //TU Declarament
-    ElapsedTime += 1;
-    NumberOfExist = 0; NumberOfExistCon = 0; NumberOfExistT0 = 0; NumberOfExistT0Com = 0;
+    int Varb0004 = 0; ElapsedTime += 1; NumberOfExist = 0; NumberOfExistCon = 0; NumberOfExistT0 = 0; NumberOfExistT0Com = 0; NumberOfExistNT0 = 0;
+    for(Varb0002 = 0; Varb0002 < 90; ++Varb0002)
+    {
+     if(game.files.get_backgrounds()[background].transparency[Varb0002] - (game.files.get_backgrounds()[background].transparency[Varb0002] % 100000000) == 800000000)
+     {Varb0004 = Varb0002; break;}
+    }
     for(Varb0002 = 0; Varb0002 < MaximumObjNum; ++Varb0002)
     {
      int Varb0003 = loadTarget(Varb0002);
-     Database_Status[(Varb0002 * 12) + 9] = 1;
-     Database_Status[(Varb0002 * 12) + 10] = 1;
-     Database_Status[(Varb0002 * 12) + 11] = 1;
      if(Varb0003 != -1)
      {
-      Database_OpoFrame[Varb0002] = game.objects[Varb0002].frame1;
-      if(game.objects[Varb0002].frame1 == 399) Control_Frame1(Varb0002, 0);
-     }
-     switch(Varb0003)
-     {
-      case 0:
-       if(game.objects[Varb0002].data.id != 51 && game.objects[Varb0002].data.id != 53)
+      if(Varb0003 < 7)
+      {
+       if(Database_Status[(Varb0002 * 12) + 3] == -999999)
        {
-        Database_Exist[NumberOfExist] = Varb0002; NumberOfExist += 1;
+        if(Database_Status[(Varb0002 * 12) + 4] == -999999)
+        if(Database_Status[(Varb0002 * 12) + 5] == -999999)
+        {
+         Database_Status[(Varb0002 * 12) + 3] = (((game.files.get_backgrounds()[background].layer_x[Varb0004] % 100000000) - (game.files.get_backgrounds()[background].layer_x[Varb0004] % 10000)) / 10000) + RandomValue(((game.files.get_backgrounds()[background].layer_y[Varb0004] % 100000000) - (game.files.get_backgrounds()[background].layer_y[Varb0004] % 10000)) / 10000);
+         Database_Status[(Varb0002 * 12) + 4] = -((((game.files.get_backgrounds()[background].transparency[Varb0004] % 100000000) - (game.files.get_backgrounds()[background].transparency[Varb0004] % 10000)) / 10000) + RandomValue(game.files.get_backgrounds()[background].transparency[Varb0004] % 10000));
+         Database_Status[(Varb0002 * 12) + 5] = (game.files.get_backgrounds()[background].layer_x[Varb0004] % 10000) + RandomValue(game.files.get_backgrounds()[background].layer_y[Varb0004] % 10000);
+         if(Varb0003 != 0)
+         {
+          Database_Status[(Varb0002 * 12) + 4] -= 400;
+         }
+        }
        } else
        {
-        Database_ExistCon[NumberOfExistCon] = Varb0002; NumberOfExistCon += 1;
+        if(Database_Status[(Varb0002 * 12) + 3] == 999999)
+        if(Database_Status[(Varb0002 * 12) + 4] == 999999)
+        if(Database_Status[(Varb0002 * 12) + 5] == 999999)
+        {
+         Database_Status[(Varb0002 * 12) + 3] = game.objects[Varb0002].x_real;
+         Database_Status[(Varb0002 * 12) + 4] = game.objects[Varb0002].y_real;
+         Database_Status[(Varb0002 * 12) + 5] = game.objects[Varb0002].z_real;
+        }
        }
-       if(Varb0002 > 9){Database_ExistT0Com[NumberOfExistT0Com] = Varb0002; NumberOfExistT0Com += 1;}
-       Database_ExistT0[NumberOfExistT0] = Varb0002; NumberOfExistT0 += 1;
-      break;
-     case 1:
-       Database_Exist[NumberOfExist] = Varb0002; NumberOfExist += 1;
-      break;
-      case 2:
-       Database_Exist[NumberOfExist] = Varb0002; NumberOfExist += 1;
-      break;
-      case 3:
-       Database_Exist[NumberOfExist] = Varb0002; NumberOfExist += 1;
-      break;
-      case 4:
-       Database_Exist[NumberOfExist] = Varb0002; NumberOfExist += 1;
-      break;
-      case 5:
-       Database_Exist[NumberOfExist] = Varb0002; NumberOfExist += 1;
-      break;
-      case 6:
-       Database_Exist[NumberOfExist] = Varb0002; NumberOfExist += 1;
-      break;
-      default: break;
+       Database_FirstFrame[Varb0002] = game.objects[Varb0002].frame1;
+       Database_Status[(Varb0002 * 12) + 9] = 1;
+       Database_Status[(Varb0002 * 12) + 10] = 1;
+       Database_Status[(Varb0002 * 12) + 11] = 1;
+       if(game.objects[Varb0002].data.id != 51){Database_Exist[NumberOfExist] = Varb0002; NumberOfExist += 1;} else {Database_ExistCon[NumberOfExistCon] = Varb0002; NumberOfExistCon += 1;}
+       switch(Varb0003)
+       {
+        case 0:
+         if(game.objects[Varb0002].data.id != 51){Database_ExistT0[NumberOfExistT0] = Varb0002; NumberOfExistT0 += 1;}
+         if(Varb0002 > 9){Database_ExistT0Com[NumberOfExistT0Com] = Varb0002; NumberOfExistT0Com += 1;}
+        break;
+        default:
+         Database_ExistNT0[NumberOfExistNT0] = Varb0002; NumberOfExistNT0 += 1;
+        break;
+       }
+      }
+     } else
+     {
+      if(Database_Owner[Varb0002] == -1) continue;
+      Database_Owner[Varb0002] = -1;
+      Database_Status[(Varb0002 * 12)] = 0;
+      Database_Status[(Varb0002 * 12) + 1] = 0;
+      Database_Status[(Varb0002 * 12) + 2] = 0;
+      Database_Status[(Varb0002 * 12) + 3] = 999999;
+      Database_Status[(Varb0002 * 12) + 4] = 999999;
+      Database_Status[(Varb0002 * 12) + 5] = 999999;
+      Database_Cast[Varb0002] = 0;
+      Database_HitLag[Varb0002] = 0;
+      Database_Output[Varb0002] = 0;
+      Database_Target[Varb0002] = -1;
+      Database_LastVel[Varb0002] = 0;
+      Database_TimeStop[Varb0002] = 0;
+      Database_Bounce[Varb0002] = false;
+      Database_Held[(Varb0002 * 2) + 0] = -1;
+      Database_Held[(Varb0002 * 2) + 1] = -1;
+      Database_Input[(Varb0002 * 7) + 0] = 1;
+      Database_Input[(Varb0002 * 7) + 1] = 1;
+      Database_Input[(Varb0002 * 7) + 2] = 1;
+      Database_Input[(Varb0002 * 7) + 3] = 1;
+      Database_Input[(Varb0002 * 7) + 4] = 1;
+      Database_Input[(Varb0002 * 7) + 5] = 1;
+      Database_Input[(Varb0002 * 7) + 6] = 1;
+      Database_Status[(Varb0002 * 12) + 6] = 0;
+      Database_Status[(Varb0002 * 12) + 7] = 0;
+      Database_Status[(Varb0002 * 12) + 8] = 0;
+      Database_Summary[(Varb0002 * 10) + 0] = 0;
+      Database_Summary[(Varb0002 * 10) + 1] = 0;
+      Database_Summary[(Varb0002 * 10) + 2] = 0;
+      Database_Summary[(Varb0002 * 10) + 3] = 0;
+      Database_Summary[(Varb0002 * 10) + 4] = 0;
+      Database_Summary[(Varb0002 * 10) + 5] = 0;
+      Database_Summary[(Varb0002 * 10) + 6] = 0;
+      Database_Summary[(Varb0002 * 10) + 7] = 0;
+      Database_Summary[(Varb0002 * 10) + 8] = 0;
+      Database_Summary[(Varb0002 * 10) + 9] = 0;
+      Database_Cooldown[(Varb0002 * 10) + 0] = 0;
+      Database_Cooldown[(Varb0002 * 10) + 1] = 0;
+      Database_Cooldown[(Varb0002 * 10) + 2] = 0;
+      Database_Cooldown[(Varb0002 * 10) + 3] = 0;
+      Database_Cooldown[(Varb0002 * 10) + 4] = 0;
+      Database_Cooldown[(Varb0002 * 10) + 5] = 0;
+      Database_Cooldown[(Varb0002 * 10) + 6] = 0;
+      Database_Cooldown[(Varb0002 * 10) + 7] = 0;
+      Database_Cooldown[(Varb0002 * 10) + 8] = 0;
+      Database_Cooldown[(Varb0002 * 10) + 9] = 0;
      }
     }
    //-//
 
-   //InBattleCheck
+   //InBattle Check
     for(Varb0002 = 0; Varb0002 < NumberOfExistCon; ++Varb0002)
     {
      Control_Blink(Database_ExistCon[Varb0002], -199);
@@ -321,11 +380,71 @@
    //Debug Menu
     if(ConsoleDebug)
     {
+     print("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
+     int Varb1000 = elapsed_time % 60; int Varb1001 = ElapsedTime % 35;
+     switch(ConsoleBuffer)
+     {
+      case 60: print("\n|============ "); break;
+      case 80: print("\n|====================== "); break;
+      case 100: print("\n|================================ "); break;
+      case 120: print("\n|========================================== "); break;
+      default: ConsoleBuffer = 100; print("\n|================================ "); break;
+     }
+     if(Varb1000 == 0 || Varb1001 == 0){RandomSingleFont();} else {print("D");}
+     if(Varb1000 == 1 || Varb1001 == 1){RandomSingleFont();} else {print("e");}
+     if(Varb1000 == 2 || Varb1001 == 2){RandomSingleFont();} else {print("b");}
+     if(Varb1000 == 3 || Varb1001 == 3){RandomSingleFont();} else {print("u");}
+     if(Varb1000 == 4 || Varb1001 == 4){RandomSingleFont();} else {print("g");}
+     if(Varb1000 == 5 || Varb1001 == 5){RandomSingleFont();} else {print(" ");}
+     if(Varb1000 == 6 || Varb1001 == 6){RandomSingleFont();} else {print("M");}
+     if(Varb1000 == 7 || Varb1001 == 7){RandomSingleFont();} else {print("e");}
+     if(Varb1000 == 8 || Varb1001 == 8){RandomSingleFont();} else {print("n");}
+     if(Varb1000 == 9 || Varb1001 == 9){RandomSingleFont();} else {print("u");}
+     if(Varb1000 == 10 || Varb1001 == 10){RandomSingleFont();} else {print(" ");}
+     if(Varb1000 == 11 || Varb1001 == 11){RandomSingleFont();} else {print("-");}
+     if(Varb1000 == 12 || Varb1001 == 12){RandomSingleFont();} else {print(" ");}
+     if(Varb1000 == 13 || Varb1001 == 13){RandomSingleFont();} else {print("V");}
+     if(Varb1000 == 14 || Varb1001 == 14){RandomSingleFont();} else {print("e");}
+     if(Varb1000 == 15 || Varb1001 == 15){RandomSingleFont();} else {print("r");}
+     if(Varb1000 == 16 || Varb1001 == 16){RandomSingleFont();} else {print("s");}
+     if(Varb1000 == 17 || Varb1001 == 17){RandomSingleFont();} else {print("i");}
+     if(Varb1000 == 18 || Varb1001 == 18){RandomSingleFont();} else {print("o");}
+     if(Varb1000 == 19 || Varb1001 == 19){RandomSingleFont();} else {print("n");}
+     if(Varb1000 == 20 || Varb1001 == 20){RandomSingleFont();} else {print(" ");}
+     if(Varb1000 == 21 || Varb1001 == 21){RandomSingleFont();} else {print("0");}
+     if(Varb1000 == 22 || Varb1001 == 22){RandomSingleFont();} else {print(".");}
+     if(Varb1000 == 23 || Varb1001 == 23){RandomSingleFont();} else {print("8");}
+     if(Varb1000 == 24 || Varb1001 == 24){RandomSingleFont();} else {print("1");}
+     if(Varb1000 == 25 || Varb1001 == 25){RandomSingleFont();} else {print(".");}
+     if(Varb1000 == 26 || Varb1001 == 26){RandomSingleFont();} else {print("2");}
+     if(Varb1000 == 27 || Varb1001 == 27){RandomSingleFont();} else {print("2");}
+     if(Varb1000 == 28 || Varb1001 == 28){RandomSingleFont();} else {print("0");}
+     if(Varb1000 == 29 || Varb1001 == 29){RandomSingleFont();} else {print("5");}
+     if(Varb1000 == 30 || Varb1001 == 30){RandomSingleFont();} else {print("1");}
+     if(Varb1000 == 31 || Varb1001 == 31){RandomSingleFont();} else {print("2");}
+     switch(ConsoleBuffer)
+     {
+      case 60: print(" ============|"); break;
+      case 80: print(" ======================|"); break;
+      case 100: print(" ================================|"); break;
+      case 120: print(" ==========================================|"); break;
+     }
      if(InBattle)
      {
-      print(Database_LastVel[2]);
+     //Debug's Core
+      print(" ");
+      int Varb0923 = RandomValue(999999);
+      if(Varb0923 < 10){print("00000");} else
+      {if(Varb0923 < 100){print("0000");} else
+      {if(Varb0923 < 1000){print("000");} else
+      {if(Varb0923 < 10000){print("00");} else
+      {if(Varb0923 < 100000){print("0");}}}}}
+      print(Varb0923+" "+RandHigh+" "+RandLow+" "+RandomizeSeed);
+      if(Varb0923 < 500000){RandLow += 1;} else {RandHigh += 1;}
+     //-//
      } else
      {
+      print(" Waitting for a battle..");
       switch(ConsoleBuffer)
       {
        case 60: print("\n|==================== "); break;
@@ -333,7 +452,7 @@
        case 100: print("\n|======================================== "); break;
        case 120: print("\n|================================================== "); break;
       }
-      int Varb1000 = elapsed_time % 70; int Varb1001 = (ElapsedTime + 35) % 70;
+      Varb1000 = elapsed_time % 70; Varb1001 = (ElapsedTime + 35) % 70;
       if(Varb1000 == 0 || Varb1001 == 19){RandomSingleFont();} else {print("D");}
       if(Varb1000 == 2 || Varb1001 == 33){RandomSingleFont();} else {print("e");}
       if(Varb1000 == 1 || Varb1001 == 5){RandomSingleFont();} else {print("b");}
@@ -362,43 +481,29 @@
     } else {if(!InBattle) printLogClear();}
    //-//
 
-   //Player Input
-    if(FixedInput)
+   //Outputs
     for(Varb0002 = 0; Varb0002 < 10; ++Varb0002)
     {
-     Database_Output[Varb0002] = 0;
-     if(game.objects[Varb0002].A) Database_Output[Varb0002] += 1000000;
-     if(game.objects[Varb0002].D) Database_Output[Varb0002] += 100000;
-     if(game.objects[Varb0002].J) Database_Output[Varb0002] += 10000;
-     if(game.objects[Varb0002].up) Database_Output[Varb0002] += 1000;
-     if(game.objects[Varb0002].left) Database_Output[Varb0002] += 100;
-     if(game.objects[Varb0002].down) Database_Output[Varb0002] += 10;
-     if(game.objects[Varb0002].right) Database_Output[Varb0002] += 1;
+     if((elapsed_time - 1) % 2 == 0 || FixedInput)
+     {
+      Database_Output[Varb0002] = 0;
+      if(game.objects[Varb0002].A) Database_Output[Varb0002] += 1000000;
+      if(game.objects[Varb0002].D) Database_Output[Varb0002] += 100000;
+      if(game.objects[Varb0002].J) Database_Output[Varb0002] += 10000;
+      if(game.objects[Varb0002].up) Database_Output[Varb0002] += 1000;
+      if(game.objects[Varb0002].left) Database_Output[Varb0002] += 100;
+      if(game.objects[Varb0002].down) Database_Output[Varb0002] += 10;
+      if(game.objects[Varb0002].right) Database_Output[Varb0002] += 1;
+     }
+     UnderControl(Varb0002);
     }
+    for(Varb0002 = 0; Varb0002 < NumberOfExistT0Com; ++Varb0002) if(game.objects[Database_ExistT0Com[Varb0002]].data.id != 51) Database_Output[Database_ExistT0Com[Varb0002]] = LF2ETAI(Database_ExistT0Com[Varb0002]);
    //-//
-
-   //AI Input
-    for(Varb0002 = 0; Varb0002 < NumberOfExistT0Com; ++Varb0002) LF2ETAI(Database_ExistT0Com[Varb0002]);
-   //-//
-   
-   for(Varb0002 = 0; Varb0002 < 10; ++Varb0002)
-   {
-    if(!FixedInput)
-    if((elapsed_time - 1) % 2 == 0)
-    {
-     Database_Output[Varb0002] = 0;
-     if(game.objects[Varb0002].A) Database_Output[Varb0002] += 1000000;
-     if(game.objects[Varb0002].D) Database_Output[Varb0002] += 100000;
-     if(game.objects[Varb0002].J) Database_Output[Varb0002] += 10000;
-     if(game.objects[Varb0002].up) Database_Output[Varb0002] += 1000;
-     if(game.objects[Varb0002].left) Database_Output[Varb0002] += 100;
-     if(game.objects[Varb0002].down) Database_Output[Varb0002] += 10;
-     if(game.objects[Varb0002].right) Database_Output[Varb0002] += 1;
-    }
-    UnderControl(Varb0002);
-   }
    UnderControl(Varb0001);
   }
+ //-//
+
+ //Second System
   void UnderControl(int Varb0001)
   {
    if(Varb0001 == Database_ExistT0Com[NumberOfExistT0Com - 1]) Database_Control01 = true;
@@ -535,1578 +640,7 @@
     case 0111111: Input(false, true, true, true, true, true, true, Varb0001); break;
     case 1111111: Input(true, true, true, true, true, true, true, Varb0001); break;
    }
-   if(Varb0001 == Database_ExistT0Com[NumberOfExistT0Com - 1]) GameSystem();
-  }
- //-//
- 
- //Final Game-System
-  void GameSystem()
-  {
-   int Varb0001;
-   //Base Declarament
-    for(Varb0001 = 0; Varb0001 < NumberOfExist; ++Varb0001)
-    {
-     if(game.objects[Database_Exist[Varb0001]].frame1 == 398)
-     {
-      Database_Status[(Database_Exist[Varb0001] * 12) + 3] = -9999;
-      Database_Status[(Database_Exist[Varb0001] * 12) + 4] = -9999;
-      Database_Status[(Database_Exist[Varb0001] * 12) + 5] = -9999;
-     } else
-     {
-      if(Database_Status[(Database_Exist[Varb0001] * 12) + 3] == -9999) if(Database_Status[(Database_Exist[Varb0001] * 12) + 4] == -9999) if(Database_Status[(Database_Exist[Varb0001] * 12) + 5] == -9999)
-      {
-       if(StateEjection(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].frame1, 3) == 0999)
-       {
-        ////////////////////// Number of Owner needed
-       } else
-       {
-        Database_Status[(Database_Exist[Varb0001] * 12) + 3] = game.objects[Database_Exist[Varb0001]].x_real;
-        Database_Status[(Database_Exist[Varb0001] * 12) + 4] = game.objects[Database_Exist[Varb0001]].y_real;
-        Database_Status[(Database_Exist[Varb0001] * 12) + 5] = game.objects[Database_Exist[Varb0001]].z_real;
-       }
-      }
-     }
-    }
-   //-//
-
-   //Early State Declarament
-    bool Varb0003; bool Varb0004; bool Varb0005;
-    for(Varb0001 = 0; Varb0001 < NumberOfExist; ++Varb0001)
-    {
-     switch((StateEjection(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].frame1, 5) % 1000000))
-     {
-      case 100000:
-       if(Database_HitLag[Database_Exist[Varb0001]] != 0) continue;
-       if(((Database_Input[(Database_Exist[Varb0001] * 7) + 3] > 1 && Database_Input[(Database_Exist[Varb0001] * 7) + 5] == 1) || (Database_Input[(Database_Exist[Varb0001] * 7) + 3] == 1 && Database_Input[(Database_Exist[Varb0001] * 7) + 5] > 1 )) || ((Database_Input[(Database_Exist[Varb0001] * 7) + 4] > 1 && Database_Input[(Database_Exist[Varb0001] * 7) + 6] == 1) || (Database_Input[(Database_Exist[Varb0001] * 7) + 4] == 1 && Database_Input[(Database_Exist[Varb0001] * 7) + 6] > 1 )))
-       Control_Frame1(Database_Exist[Varb0001], ((StateEjection(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].frame1, 2) % 100000) / 100) + RandomValue(StateEjection(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].frame1, 0) % 100));
-      break;
-      case 200000:
-       switch((StateEjection(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].frame1, 3) % 100000))
-       {
-        case 44000:
-         Varb0003 = true;
-         YVelUp(Database_Exist[Varb0001], -(MovementJumpYAmount * Database_Status[(Database_Exist[Varb0001] * 12) + 9]) - MovementJumpFixedYAmount - (game.objects[Database_Exist[Varb0001]].data.walking_speed * MovementBaseRatio * MovementJumpRatioY));
-         if(Database_Input[(Database_Exist[Varb0001] * 7) + 3] > 1 && Database_Input[(Database_Exist[Varb0001] * 7) + 5] == 1)
-         {
-          Varb0003 = false;
-          if(Database_Input[(Database_Exist[Varb0001] * 7) + 4] > 1 && Database_Input[(Database_Exist[Varb0001] * 7) + 6] == 1)
-          {
-           XVelUp(Database_Exist[Varb0001], -(game.objects[Database_Exist[Varb0001]].data.walking_speed * MovementBaseRatio * Database_Status[(Database_Exist[Varb0001] * 12) + 9] * MovementJumpRatioX * MovementSideRatio));
-          } else
-          {
-           if(Database_Input[(Database_Exist[Varb0001] * 7) + 4] == 1 && Database_Input[(Database_Exist[Varb0001] * 7) + 6] > 1)
-           XVelUp(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].data.walking_speed * MovementBaseRatio * Database_Status[(Database_Exist[Varb0001] * 12) + 9] * MovementJumpRatioX * MovementSideRatio);
-          }
-          ZVelUp(Database_Exist[Varb0001], -(game.objects[Database_Exist[Varb0001]].data.walking_speed * MovementBaseRatio * PrespectiveRatio * Database_Status[(Database_Exist[Varb0001] * 12) + 9] * MovementJumpRatioX));
-         } else
-         {
-          if(Database_Input[(Database_Exist[Varb0001] * 7) + 3] == 1 && Database_Input[(Database_Exist[Varb0001] * 7) + 5] > 1)
-          {
-           Varb0003 = false;
-           if(Database_Input[(Database_Exist[Varb0001] * 7) + 4] > 1 && Database_Input[(Database_Exist[Varb0001] * 7) + 6] == 1)
-           {
-            XVelUp(Database_Exist[Varb0001], -(game.objects[Database_Exist[Varb0001]].data.walking_speed * MovementBaseRatio * Database_Status[(Database_Exist[Varb0001] * 12) + 9] * MovementJumpRatioX * MovementSideRatio));
-           } else
-           {
-            if(Database_Input[(Database_Exist[Varb0001] * 7) + 4] == 1 && Database_Input[(Database_Exist[Varb0001] * 7) + 6] > 1)
-            XVelUp(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].data.walking_speed * MovementBaseRatio * Database_Status[(Database_Exist[Varb0001] * 12) + 9] * MovementJumpRatioX * MovementSideRatio);
-           }
-           ZVelUp(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].data.walking_speed * MovementBaseRatio * PrespectiveRatio * Database_Status[(Database_Exist[Varb0001] * 12) + 9] * MovementJumpRatioX);
-          }
-         }
-         if(Varb0003)
-         {
-          if(Database_Input[(Database_Exist[Varb0001] * 7) + 4] > 1 && Database_Input[(Database_Exist[Varb0001] * 7) + 6] == 1)
-          {
-           XVelUp(Database_Exist[Varb0001], -(game.objects[Database_Exist[Varb0001]].data.walking_speed * MovementBaseRatio * Database_Status[(Database_Exist[Varb0001] * 12) + 9] * MovementJumpRatioX));
-          } else
-          {
-           if(Database_Input[(Database_Exist[Varb0001] * 7) + 4] == 1 && Database_Input[(Database_Exist[Varb0001] * 7) + 6] > 1)
-           XVelUp(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].data.walking_speed * MovementBaseRatio * Database_Status[(Database_Exist[Varb0001] * 12) + 9] * MovementJumpRatioX);
-          }
-         }
-         Control_Frame1(Database_Exist[Varb0001], StateEjection(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].frame1, 0) % 1000);
-        break;
-        case 45000:
-         Varb0003 = true;
-         YVelUp(Database_Exist[Varb0001], -(MovementDashYAmount * Database_Status[(Database_Exist[Varb0001] * 12) + 9]) - MovementDashFixedYAmount - (game.objects[Database_Exist[Varb0001]].data.walking_speed * MovementBaseRatio * MovementDashRatioY));
-         if(Database_Input[(Database_Exist[Varb0001] * 7) + 3] > 1 && Database_Input[(Database_Exist[Varb0001] * 7) + 5] == 1)
-         {
-          Varb0003 = false;
-          if(Database_Input[(Database_Exist[Varb0001] * 7) + 4] > 1 && Database_Input[(Database_Exist[Varb0001] * 7) + 6] == 1)
-          {
-           XVelUp(Database_Exist[Varb0001], -(game.objects[Database_Exist[Varb0001]].data.walking_speed * MovementBaseRatio * Database_Status[(Database_Exist[Varb0001] * 12) + 9] * MovementDashRatioX * MovementSideRatio));
-           if(game.objects[Database_Exist[Varb0001]].facing){Control_Frame1(Database_Exist[Varb0001], StateEjection(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].frame1, 0) % 1000);} else {Control_Frame1(Database_Exist[Varb0001], (StateEjection(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].frame1, 0) % 1000) + 1);}
-          } else
-          {
-           if(Database_Input[(Database_Exist[Varb0001] * 7) + 4] == 1 && Database_Input[(Database_Exist[Varb0001] * 7) + 6] > 1)
-           {
-            XVelUp(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].data.walking_speed * MovementBaseRatio * Database_Status[(Database_Exist[Varb0001] * 12) + 9] * MovementDashRatioX * MovementSideRatio);
-            if(game.objects[Database_Exist[Varb0001]].facing){Control_Frame1(Database_Exist[Varb0001], (StateEjection(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].frame1, 0) % 1000) + 1);} else {Control_Frame1(Database_Exist[Varb0001], StateEjection(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].frame1, 0) % 1000);}
-           } else
-           {
-            switch(Database_LastVel[Database_Exist[Varb0001]])
-            {
-             case 2:
-             case 3:
-             case 4:
-              XVelUp(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].data.walking_speed * MovementBaseRatio * Database_Status[(Database_Exist[Varb0001] * 12) + 9] * MovementDashRatioX * MovementSideRatio);
-              if(game.objects[Database_Exist[Varb0001]].facing){Control_Frame1(Database_Exist[Varb0001], (StateEjection(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].frame1, 0) % 1000) + 1);} else {Control_Frame1(Database_Exist[Varb0001], StateEjection(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].frame1, 0) % 1000);}
-             break;
-             case 6:
-             case 7:
-             case 8:
-              XVelUp(Database_Exist[Varb0001], -(game.objects[Database_Exist[Varb0001]].data.walking_speed * MovementBaseRatio * Database_Status[(Database_Exist[Varb0001] * 12) + 9] * MovementDashRatioX * MovementSideRatio));
-              if(game.objects[Database_Exist[Varb0001]].facing){Control_Frame1(Database_Exist[Varb0001], StateEjection(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].frame1, 0) % 1000);} else {Control_Frame1(Database_Exist[Varb0001], (StateEjection(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].frame1, 0) % 1000) + 1);}
-             break;
-             default: break;
-            }
-           }
-          }
-          ZVelUp(Database_Exist[Varb0001], -(game.objects[Database_Exist[Varb0001]].data.walking_speed * MovementBaseRatio * PrespectiveRatio * Database_Status[(Database_Exist[Varb0001] * 12) + 9] * MovementDashRatioX * MovementSideRatio));
-         } else
-         {
-          if(Database_Input[(Database_Exist[Varb0001] * 7) + 3] == 1 && Database_Input[(Database_Exist[Varb0001] * 7) + 5] > 1)
-          {
-           Varb0003 = false;
-           if(Database_Input[(Database_Exist[Varb0001] * 7) + 4] > 1 && Database_Input[(Database_Exist[Varb0001] * 7) + 6] == 1)
-           {
-            XVelUp(Database_Exist[Varb0001], -(game.objects[Database_Exist[Varb0001]].data.walking_speed * MovementBaseRatio * Database_Status[(Database_Exist[Varb0001] * 12) + 9] * MovementDashRatioX * MovementSideRatio));
-            if(game.objects[Database_Exist[Varb0001]].facing){Control_Frame1(Database_Exist[Varb0001], StateEjection(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].frame1, 0) % 1000);} else {Control_Frame1(Database_Exist[Varb0001], (StateEjection(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].frame1, 0) % 1000) + 1);}
-           } else
-           {
-            if(Database_Input[(Database_Exist[Varb0001] * 7) + 4] == 1 && Database_Input[(Database_Exist[Varb0001] * 7) + 6] > 1)
-            {
-             XVelUp(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].data.walking_speed * MovementBaseRatio * Database_Status[(Database_Exist[Varb0001] * 12) + 9] * MovementDashRatioX * MovementSideRatio);
-             if(game.objects[Database_Exist[Varb0001]].facing){Control_Frame1(Database_Exist[Varb0001], (StateEjection(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].frame1, 0) % 1000) + 1);} else {Control_Frame1(Database_Exist[Varb0001], StateEjection(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].frame1, 0) % 1000);}
-            } else
-            {
-             switch(Database_LastVel[Database_Exist[Varb0001]])
-             {
-              case 2:
-              case 3:
-              case 4:
-               XVelUp(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].data.walking_speed * MovementBaseRatio * Database_Status[(Database_Exist[Varb0001] * 12) + 9] * MovementDashRatioX * MovementSideRatio);
-               if(game.objects[Database_Exist[Varb0001]].facing){Control_Frame1(Database_Exist[Varb0001], (StateEjection(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].frame1, 0) % 1000) + 1);} else {Control_Frame1(Database_Exist[Varb0001], StateEjection(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].frame1, 0) % 1000);}
-              break;
-              case 6:
-              case 7:
-              case 8:
-               XVelUp(Database_Exist[Varb0001], -(game.objects[Database_Exist[Varb0001]].data.walking_speed * MovementBaseRatio * Database_Status[(Database_Exist[Varb0001] * 12) + 9] * MovementDashRatioX * MovementSideRatio));
-               if(game.objects[Database_Exist[Varb0001]].facing){Control_Frame1(Database_Exist[Varb0001], StateEjection(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].frame1, 0) % 1000);} else {Control_Frame1(Database_Exist[Varb0001], (StateEjection(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].frame1, 0) % 1000) + 1);}
-              break;
-              default: break;
-             }
-            }
-           }
-           ZVelUp(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].data.walking_speed * MovementBaseRatio * PrespectiveRatio * Database_Status[(Database_Exist[Varb0001] * 12) + 9] * MovementDashRatioX * MovementSideRatio);
-          }
-         }
-         if(Varb0003)
-         {
-          if(Database_Input[(Database_Exist[Varb0001] * 7) + 4] > 1 && Database_Input[(Database_Exist[Varb0001] * 7) + 6] == 1)
-          {
-           XVelUp(Database_Exist[Varb0001], -(game.objects[Database_Exist[Varb0001]].data.walking_speed * MovementBaseRatio * Database_Status[(Database_Exist[Varb0001] * 12) + 9] * MovementDashRatioX));
-           if(game.objects[Database_Exist[Varb0001]].facing){Control_Frame1(Database_Exist[Varb0001], StateEjection(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].frame1, 0) % 1000);} else {Control_Frame1(Database_Exist[Varb0001], (StateEjection(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].frame1, 0) % 1000) + 1);}
-          } else
-          {
-           if(Database_Input[(Database_Exist[Varb0001] * 7) + 4] == 1 && Database_Input[(Database_Exist[Varb0001] * 7) + 6] > 1)
-           {
-            XVelUp(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].data.walking_speed * MovementBaseRatio * Database_Status[(Database_Exist[Varb0001] * 12) + 9] * MovementDashRatioX);
-            if(game.objects[Database_Exist[Varb0001]].facing){Control_Frame1(Database_Exist[Varb0001], (StateEjection(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].frame1, 0) % 1000) + 1);} else {Control_Frame1(Database_Exist[Varb0001], StateEjection(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].frame1, 0) % 1000);}
-           } else
-           {
-             switch(Database_LastVel[Database_Exist[Varb0001]])
-             {
-              case 2:
-               XVelUp(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].data.walking_speed * MovementBaseRatio * Database_Status[(Database_Exist[Varb0001] * 12) + 9] * MovementDashRatioX * MovementSideRatio);
-               ZVelUp(Database_Exist[Varb0001], -(game.objects[Database_Exist[Varb0001]].data.walking_speed * MovementBaseRatio * PrespectiveRatio * Database_Status[(Database_Exist[Varb0001] * 12) + 9] * MovementDashRatioX * MovementSideRatio));
-               if(game.objects[Database_Exist[Varb0001]].facing){Control_Frame1(Database_Exist[Varb0001], (StateEjection(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].frame1, 0) % 1000) + 1);} else {Control_Frame1(Database_Exist[Varb0001], StateEjection(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].frame1, 0) % 1000);}
-              break;
-              case 3:
-               XVelUp(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].data.walking_speed * MovementBaseRatio * Database_Status[(Database_Exist[Varb0001] * 12) + 9] * MovementDashRatioX);
-               if(game.objects[Database_Exist[Varb0001]].facing){Control_Frame1(Database_Exist[Varb0001], (StateEjection(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].frame1, 0) % 1000) + 1);} else {Control_Frame1(Database_Exist[Varb0001], StateEjection(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].frame1, 0) % 1000);}
-              break;
-              case 4:
-               XVelUp(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].data.walking_speed * MovementBaseRatio * Database_Status[(Database_Exist[Varb0001] * 12) + 9] * MovementDashRatioX * MovementSideRatio);
-               ZVelUp(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].data.walking_speed * MovementBaseRatio * PrespectiveRatio * Database_Status[(Database_Exist[Varb0001] * 12) + 9] * MovementDashRatioX * MovementSideRatio);
-               if(game.objects[Database_Exist[Varb0001]].facing){Control_Frame1(Database_Exist[Varb0001], (StateEjection(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].frame1, 0) % 1000) + 1);} else {Control_Frame1(Database_Exist[Varb0001], StateEjection(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].frame1, 0) % 1000);}
-              break;
-              case 6:
-               XVelUp(Database_Exist[Varb0001], -(game.objects[Database_Exist[Varb0001]].data.walking_speed * MovementBaseRatio * Database_Status[(Database_Exist[Varb0001] * 12) + 9] * MovementDashRatioX * MovementSideRatio));
-               ZVelUp(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].data.walking_speed * MovementBaseRatio * PrespectiveRatio * Database_Status[(Database_Exist[Varb0001] * 12) + 9] * MovementDashRatioX * MovementSideRatio);
-               if(game.objects[Database_Exist[Varb0001]].facing){Control_Frame1(Database_Exist[Varb0001], StateEjection(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].frame1, 0) % 1000);} else {Control_Frame1(Database_Exist[Varb0001], (StateEjection(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].frame1, 0) % 1000) + 1);}
-              break;
-              case 7:
-               XVelUp(Database_Exist[Varb0001], -(game.objects[Database_Exist[Varb0001]].data.walking_speed * MovementBaseRatio * Database_Status[(Database_Exist[Varb0001] * 12) + 9] * MovementDashRatioX));
-               if(game.objects[Database_Exist[Varb0001]].facing){Control_Frame1(Database_Exist[Varb0001], StateEjection(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].frame1, 0) % 1000);} else {Control_Frame1(Database_Exist[Varb0001], (StateEjection(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].frame1, 0) % 1000) + 1);}
-              break;
-              case 8:
-               XVelUp(Database_Exist[Varb0001], -(game.objects[Database_Exist[Varb0001]].data.walking_speed * MovementBaseRatio * Database_Status[(Database_Exist[Varb0001] * 12) + 9] * MovementDashRatioX * MovementSideRatio));
-               ZVelUp(Database_Exist[Varb0001], -(game.objects[Database_Exist[Varb0001]].data.walking_speed * MovementBaseRatio * PrespectiveRatio * Database_Status[(Database_Exist[Varb0001] * 12) + 9] * MovementDashRatioX * MovementSideRatio));
-               if(game.objects[Database_Exist[Varb0001]].facing){Control_Frame1(Database_Exist[Varb0001], StateEjection(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].frame1, 0) % 1000);} else {Control_Frame1(Database_Exist[Varb0001], (StateEjection(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].frame1, 0) % 1000) + 1);}
-              break;
-              default: break;
-             }
-           }
-          }
-         }
-        break;
-        default: break;
-       }
-      break;
-      default: break;
-     }
-    }
-   //-//
-
-   //Input Declarament
-    for(Varb0001 = 0; Varb0001 < NumberOfExistT0; ++Varb0001)
-    {
-     int Varb0002;
-     switch((Database_Cast[Database_ExistT0[Varb0001]] % 1000000000) - (Database_Cast[Database_ExistT0[Varb0001]] % 100000000))
-     {
-      case 100000000:
-       if(game.objects[Database_ExistT0[Varb0001]].facing)
-       {
-        Varb0002 = game.objects[Database_ExistT0[Varb0001]].data.frames[game.objects[Database_ExistT0[Varb0001]].frame1].hit_Da % 1000;
-        if(Varb0002 != 0)
-        {
-         if(InputSetUp(Database_ExistT0[Varb0001], Varb0002, (game.objects[Database_ExistT0[Varb0001]].data.frames[game.objects[Database_ExistT0[Varb0001]].frame1].itrs[1].unkwn1 - (game.objects[Database_ExistT0[Varb0001]].data.frames[game.objects[Database_ExistT0[Varb0001]].frame1].itrs[1].unkwn1 % 1000000)) / 1000000))
-         Database_Cast[Database_ExistT0[Varb0001]] -= 100000000;
-        }
-       }
-      break;
-      case 200000000:
-       if(!game.objects[Database_ExistT0[Varb0001]].facing)
-       {
-        Varb0002 = game.objects[Database_ExistT0[Varb0001]].data.frames[game.objects[Database_ExistT0[Varb0001]].frame1].hit_Da % 1000;
-        if(Varb0002 != 0)
-        {
-         if(InputSetUp(Database_ExistT0[Varb0001], Varb0002, (game.objects[Database_ExistT0[Varb0001]].data.frames[game.objects[Database_ExistT0[Varb0001]].frame1].itrs[1].unkwn1 - (game.objects[Database_ExistT0[Varb0001]].data.frames[game.objects[Database_ExistT0[Varb0001]].frame1].itrs[1].unkwn1 % 1000000)) / 1000000))
-         Database_Cast[Database_ExistT0[Varb0001]] -= 200000000;
-        }
-       }
-      break;
-      case 300000000:
-      if(!game.objects[Database_ExistT0[Varb0001]].facing)
-       {
-        Varb0002 = ((game.objects[Database_ExistT0[Varb0001]].data.frames[game.objects[Database_ExistT0[Varb0001]].frame1].hit_Fa % 1000000) - (game.objects[Database_ExistT0[Varb0001]].data.frames[game.objects[Database_ExistT0[Varb0001]].frame1].hit_Fa % 1000)) / 1000;
-        if(Varb0002 != 0)
-        {
-         if(InputSetUp(Database_ExistT0[Varb0001], Varb0002, ((game.objects[Database_ExistT0[Varb0001]].data.frames[game.objects[Database_ExistT0[Varb0001]].frame1].itrs[2].unkwn1 % 1000000) - (game.objects[Database_ExistT0[Varb0001]].data.frames[game.objects[Database_ExistT0[Varb0001]].frame1].itrs[2].unkwn1 % 10000)) / 10000))
-         Database_Cast[Database_ExistT0[Varb0001]] -= 300000000;
-        }
-       } else
-       {
-        Varb0002 = (game.objects[Database_ExistT0[Varb0001]].data.frames[game.objects[Database_ExistT0[Varb0001]].frame1].hit_Fa - (game.objects[Database_ExistT0[Varb0001]].data.frames[game.objects[Database_ExistT0[Varb0001]].frame1].hit_Fa % 1000000)) / 1000000;
-        if(Varb0002 != 0)
-        {
-         if(InputSetUp(Database_ExistT0[Varb0001], Varb0002, (game.objects[Database_ExistT0[Varb0001]].data.frames[game.objects[Database_ExistT0[Varb0001]].frame1].itrs[2].unkwn1 - (game.objects[Database_ExistT0[Varb0001]].data.frames[game.objects[Database_ExistT0[Varb0001]].frame1].itrs[2].unkwn1 % 1000000)) / 1000000))
-         Database_Cast[Database_ExistT0[Varb0001]] -= 300000000;
-        }
-       }
-      break;
-      case 400000000:
-      if(game.objects[Database_ExistT0[Varb0001]].facing)
-       {
-        Varb0002 = ((game.objects[Database_ExistT0[Varb0001]].data.frames[game.objects[Database_ExistT0[Varb0001]].frame1].hit_Fa % 1000000) - (game.objects[Database_ExistT0[Varb0001]].data.frames[game.objects[Database_ExistT0[Varb0001]].frame1].hit_Fa % 1000)) / 1000;
-        if(Varb0002 != 0)
-        {
-         if(InputSetUp(Database_ExistT0[Varb0001], Varb0002, ((game.objects[Database_ExistT0[Varb0001]].data.frames[game.objects[Database_ExistT0[Varb0001]].frame1].itrs[2].unkwn1 % 1000000) - (game.objects[Database_ExistT0[Varb0001]].data.frames[game.objects[Database_ExistT0[Varb0001]].frame1].itrs[2].unkwn1 % 10000)) / 10000))
-         Database_Cast[Database_ExistT0[Varb0001]] -= 400000000;
-        }
-       } else
-       {
-        Varb0002 = (game.objects[Database_ExistT0[Varb0001]].data.frames[game.objects[Database_ExistT0[Varb0001]].frame1].hit_Fa - (game.objects[Database_ExistT0[Varb0001]].data.frames[game.objects[Database_ExistT0[Varb0001]].frame1].hit_Fa % 1000000)) / 1000000;
-        if(Varb0002 != 0)
-        {
-         if(InputSetUp(Database_ExistT0[Varb0001], Varb0002, (game.objects[Database_ExistT0[Varb0001]].data.frames[game.objects[Database_ExistT0[Varb0001]].frame1].itrs[2].unkwn1 - (game.objects[Database_ExistT0[Varb0001]].data.frames[game.objects[Database_ExistT0[Varb0001]].frame1].itrs[2].unkwn1 % 1000000)) / 1000000))
-         Database_Cast[Database_ExistT0[Varb0001]] -= 400000000;
-        }
-       }
-      break;
-      case 500000000:
-       Varb0002 = ((game.objects[Database_ExistT0[Varb0001]].data.frames[game.objects[Database_ExistT0[Varb0001]].frame1].hit_Da % 1000000) - (game.objects[Database_ExistT0[Varb0001]].data.frames[game.objects[Database_ExistT0[Varb0001]].frame1].hit_Da % 1000)) / 1000;
-       if(Varb0002 != 0)
-       {
-        if(InputSetUp(Database_ExistT0[Varb0001], Varb0002, game.objects[Database_ExistT0[Varb0001]].data.frames[game.objects[Database_ExistT0[Varb0001]].frame1].itrs[1].unkwn1 % 100))
-        Database_Cast[Database_ExistT0[Varb0001]] -= 500000000;
-       }
-      break;
-      case 600000000:
-       Varb0002 = (game.objects[Database_ExistT0[Varb0001]].data.frames[game.objects[Database_ExistT0[Varb0001]].frame1].hit_Da - (game.objects[Database_ExistT0[Varb0001]].data.frames[game.objects[Database_ExistT0[Varb0001]].frame1].hit_Da % 1000000)) / 1000000;
-       if(Varb0002 != 0)
-       {
-        if(InputSetUp(Database_ExistT0[Varb0001], Varb0002, (game.objects[Database_ExistT0[Varb0001]].data.frames[game.objects[Database_ExistT0[Varb0001]].frame1].itrs[1].unkwn1 - (game.objects[Database_ExistT0[Varb0001]].data.frames[game.objects[Database_ExistT0[Varb0001]].frame1].itrs[1].unkwn1 % 100)) / 100))
-        Database_Cast[Database_ExistT0[Varb0001]] -= 600000000;
-       }
-      break;
-      default: break;
-     }
-     switch(Database_Cast[Database_ExistT0[Varb0001]] % 100)
-     {
-      case 1:
-       Varb0002 = game.objects[Database_ExistT0[Varb0001]].data.frames[game.objects[Database_ExistT0[Varb0001]].frame1].hit_a % 1000;
-       if(Varb0002 != 0)
-       {
-        if(InputSetUp(Database_ExistT0[Varb0001], Varb0002, game.objects[Database_ExistT0[Varb0001]].data.frames[game.objects[Database_ExistT0[Varb0001]].frame1].itrs[4].unkwn1 % 100))
-        Database_Cast[Database_ExistT0[Varb0001]] -= 1;
-       }
-      break;
-      case 2:
-       Varb0002 = ((game.objects[Database_ExistT0[Varb0001]].data.frames[game.objects[Database_ExistT0[Varb0001]].frame1].hit_a % 1000000) - (game.objects[Database_ExistT0[Varb0001]].data.frames[game.objects[Database_ExistT0[Varb0001]].frame1].hit_a % 1000)) / 1000;
-       if(Varb0002 != 0)
-       {
-        if(InputSetUp(Database_ExistT0[Varb0001], Varb0002, ((game.objects[Database_ExistT0[Varb0001]].data.frames[game.objects[Database_ExistT0[Varb0001]].frame1].itrs[4].unkwn1 % 10000) - (game.objects[Database_ExistT0[Varb0001]].data.frames[game.objects[Database_ExistT0[Varb0001]].frame1].itrs[4].unkwn1 % 100)) / 100))
-        Database_Cast[Database_ExistT0[Varb0001]] -= 2;
-       }
-      break;
-      case 3:
-       Varb0002 = (game.objects[Database_ExistT0[Varb0001]].data.frames[game.objects[Database_ExistT0[Varb0001]].frame1].hit_a - (game.objects[Database_ExistT0[Varb0001]].data.frames[game.objects[Database_ExistT0[Varb0001]].frame1].hit_a % 1000000)) / 1000000;
-       if(Varb0002 != 0)
-       {
-        if(InputSetUp(Database_ExistT0[Varb0001], Varb0002, ((game.objects[Database_ExistT0[Varb0001]].data.frames[game.objects[Database_ExistT0[Varb0001]].frame1].itrs[4].unkwn1 % 1000000) - (game.objects[Database_ExistT0[Varb0001]].data.frames[game.objects[Database_ExistT0[Varb0001]].frame1].itrs[4].unkwn1 % 10000)) / 10000))
-        Database_Cast[Database_ExistT0[Varb0001]] -= 3;
-       }
-      break;
-      case 4:
-       Varb0002 = game.objects[Database_ExistT0[Varb0001]].data.frames[game.objects[Database_ExistT0[Varb0001]].frame1].hit_d % 1000;
-       if(Varb0002 != 0)
-       {
-        if(InputSetUp(Database_ExistT0[Varb0001], Varb0002, (game.objects[Database_ExistT0[Varb0001]].data.frames[game.objects[Database_ExistT0[Varb0001]].frame1].itrs[4].unkwn1 - (game.objects[Database_ExistT0[Varb0001]].data.frames[game.objects[Database_ExistT0[Varb0001]].frame1].itrs[4].unkwn1 % 1000000)) / 1000000))
-        {Database_Cast[Database_ExistT0[Varb0001]] -= 4; Control_Facing(Database_ExistT0[Varb0001], 0);}
-       }
-      break;
-      case 5:
-       Varb0002 = ((game.objects[Database_ExistT0[Varb0001]].data.frames[game.objects[Database_ExistT0[Varb0001]].frame1].hit_d % 1000000) - (game.objects[Database_ExistT0[Varb0001]].data.frames[game.objects[Database_ExistT0[Varb0001]].frame1].hit_d % 1000)) / 1000;
-       if(Varb0002 != 0)
-       {
-        if(InputSetUp(Database_ExistT0[Varb0001], Varb0002, game.objects[Database_ExistT0[Varb0001]].data.frames[game.objects[Database_ExistT0[Varb0001]].frame1].itrs[3].unkwn1 % 100))
-        {Database_Cast[Database_ExistT0[Varb0001]] -= 5; Control_Facing(Database_ExistT0[Varb0001], 0);}
-       }
-      break;
-      case 6:
-       Varb0002 = game.objects[Database_ExistT0[Varb0001]].data.frames[game.objects[Database_ExistT0[Varb0001]].frame1].hit_d % 1000;
-       if(Varb0002 != 0)
-       {
-        if(InputSetUp(Database_ExistT0[Varb0001], Varb0002, (game.objects[Database_ExistT0[Varb0001]].data.frames[game.objects[Database_ExistT0[Varb0001]].frame1].itrs[4].unkwn1 - (game.objects[Database_ExistT0[Varb0001]].data.frames[game.objects[Database_ExistT0[Varb0001]].frame1].itrs[4].unkwn1 % 1000000)) / 1000000))
-        {Database_Cast[Database_ExistT0[Varb0001]] -= 6; Control_Facing(Database_ExistT0[Varb0001], 1);}
-       }
-      break;
-      case 7:
-       Varb0002 = ((game.objects[Database_ExistT0[Varb0001]].data.frames[game.objects[Database_ExistT0[Varb0001]].frame1].hit_d % 1000000) - (game.objects[Database_ExistT0[Varb0001]].data.frames[game.objects[Database_ExistT0[Varb0001]].frame1].hit_d % 1000)) / 1000;
-       if(Varb0002 != 0)
-       {
-        if(InputSetUp(Database_ExistT0[Varb0001], Varb0002, game.objects[Database_ExistT0[Varb0001]].data.frames[game.objects[Database_ExistT0[Varb0001]].frame1].itrs[3].unkwn1 % 100))
-        {Database_Cast[Database_ExistT0[Varb0001]] -= 7; Control_Facing(Database_ExistT0[Varb0001], 1);}
-       }
-      break;
-      case 8:
-       Varb0002 = (game.objects[Database_ExistT0[Varb0001]].data.frames[game.objects[Database_ExistT0[Varb0001]].frame1].hit_d - (game.objects[Database_ExistT0[Varb0001]].data.frames[game.objects[Database_ExistT0[Varb0001]].frame1].hit_d % 1000000)) / 1000000;
-       if(Varb0002 != 0)
-       {
-        if(InputSetUp(Database_ExistT0[Varb0001], Varb0002, ((game.objects[Database_ExistT0[Varb0001]].data.frames[game.objects[Database_ExistT0[Varb0001]].frame1].itrs[3].unkwn1 % 10000) - (game.objects[Database_ExistT0[Varb0001]].data.frames[game.objects[Database_ExistT0[Varb0001]].frame1].itrs[3].unkwn1 % 100)) / 100))
-        Database_Cast[Database_ExistT0[Varb0001]] -= 8;
-       }
-      break;
-      case 9:
-       Varb0002 = game.objects[Database_ExistT0[Varb0001]].data.frames[game.objects[Database_ExistT0[Varb0001]].frame1].hit_j % 1000;
-       if(Varb0002 != 0)
-       {
-        if(InputSetUp(Database_ExistT0[Varb0001], Varb0002, ((game.objects[Database_ExistT0[Varb0001]].data.frames[game.objects[Database_ExistT0[Varb0001]].frame1].itrs[3].unkwn1 % 1000000) - (game.objects[Database_ExistT0[Varb0001]].data.frames[game.objects[Database_ExistT0[Varb0001]].frame1].itrs[3].unkwn1 % 10000)) / 10000))
-        Database_Cast[Database_ExistT0[Varb0001]] -= 9;
-       }
-      break;
-      case 10:
-       Varb0002 = ((game.objects[Database_ExistT0[Varb0001]].data.frames[game.objects[Database_ExistT0[Varb0001]].frame1].hit_j % 1000000) - (game.objects[Database_ExistT0[Varb0001]].data.frames[game.objects[Database_ExistT0[Varb0001]].frame1].hit_j % 1000)) / 1000;
-       if(Varb0002 != 0)
-       {
-        if(InputSetUp(Database_ExistT0[Varb0001], Varb0002, (game.objects[Database_ExistT0[Varb0001]].data.frames[game.objects[Database_ExistT0[Varb0001]].frame1].itrs[3].unkwn1 - (game.objects[Database_ExistT0[Varb0001]].data.frames[game.objects[Database_ExistT0[Varb0001]].frame1].itrs[3].unkwn1 % 1000000)) / 1000000))
-        Database_Cast[Database_ExistT0[Varb0001]] -= 10;
-       }
-      break;
-      case 11:
-       Varb0002 = (game.objects[Database_ExistT0[Varb0001]].data.frames[game.objects[Database_ExistT0[Varb0001]].frame1].hit_j - (game.objects[Database_ExistT0[Varb0001]].data.frames[game.objects[Database_ExistT0[Varb0001]].frame1].hit_j % 1000000)) / 1000000;
-       if(Varb0002 != 0)
-       {
-        if(InputSetUp(Database_ExistT0[Varb0001], Varb0002, game.objects[Database_ExistT0[Varb0001]].data.frames[game.objects[Database_ExistT0[Varb0001]].frame1].itrs[2].unkwn1 % 100))
-        Database_Cast[Database_ExistT0[Varb0001]] -= 11;
-       }
-      break;
-      case 12:
-       Varb0002 = game.objects[Database_ExistT0[Varb0001]].data.frames[game.objects[Database_ExistT0[Varb0001]].frame1].hit_Fa % 1000;
-       if(Varb0002 != 0)
-       {
-        if(InputSetUp(Database_ExistT0[Varb0001], Varb0002, ((game.objects[Database_ExistT0[Varb0001]].data.frames[game.objects[Database_ExistT0[Varb0001]].frame1].itrs[2].unkwn1 % 10000) - (game.objects[Database_ExistT0[Varb0001]].data.frames[game.objects[Database_ExistT0[Varb0001]].frame1].itrs[2].unkwn1 % 100)) / 100))
-        Database_Cast[Database_ExistT0[Varb0001]] -= 12;
-       }
-      break;
-      case 13:
-       Varb0002 = game.objects[Database_ExistT0[Varb0001]].data.frames[game.objects[Database_ExistT0[Varb0001]].frame1].hit_Fj % 1000;
-       if(Varb0002 != 0)
-       {
-        if(InputSetUp(Database_ExistT0[Varb0001], Varb0002, game.objects[Database_ExistT0[Varb0001]].data.frames[game.objects[Database_ExistT0[Varb0001]].frame1].itrs[1].unkwn1 % 100))
-        Database_Cast[Database_ExistT0[Varb0001]] -= 13;
-       }
-      break;
-      case 14:
-       Varb0002 = ((game.objects[Database_ExistT0[Varb0001]].data.frames[game.objects[Database_ExistT0[Varb0001]].frame1].hit_Fj % 1000000) - (game.objects[Database_ExistT0[Varb0001]].data.frames[game.objects[Database_ExistT0[Varb0001]].frame1].hit_Fj % 1000)) / 1000;
-       if(Varb0002 != 0)
-       {
-        if(InputSetUp(Database_ExistT0[Varb0001], Varb0002, ((game.objects[Database_ExistT0[Varb0001]].data.frames[game.objects[Database_ExistT0[Varb0001]].frame1].itrs[1].unkwn1 % 10000) - (game.objects[Database_ExistT0[Varb0001]].data.frames[game.objects[Database_ExistT0[Varb0001]].frame1].itrs[1].unkwn1 % 100)) / 100))
-        Database_Cast[Database_ExistT0[Varb0001]] -= 14;
-       }
-      break;
-      case 15:
-       Varb0002 = (game.objects[Database_ExistT0[Varb0001]].data.frames[game.objects[Database_ExistT0[Varb0001]].frame1].hit_Fj - (game.objects[Database_ExistT0[Varb0001]].data.frames[game.objects[Database_ExistT0[Varb0001]].frame1].hit_Fj % 1000)) / 1000;
-       if(Varb0002 != 0)
-       {
-        if(InputSetUp(Database_ExistT0[Varb0001], Varb0002, ((game.objects[Database_ExistT0[Varb0001]].data.frames[game.objects[Database_ExistT0[Varb0001]].frame1].itrs[1].unkwn1 % 1000000) - (game.objects[Database_ExistT0[Varb0001]].data.frames[game.objects[Database_ExistT0[Varb0001]].frame1].itrs[1].unkwn1 % 10000)) / 10000))
-        Database_Cast[Database_ExistT0[Varb0001]] -= 15;
-       }
-      break;
-      default: break;
-     }
-    }
-   //-//
-
-   //State Declarament
-    for(Varb0001 = 0; Varb0001 < NumberOfExist; ++Varb0001)
-    {
-     bool Varb0018 = true;
-     switch((StateEjection(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].frame1, 5) % 1000000))
-     {
-      case 200000:
-       switch((StateEjection(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].frame1, 4) % 100000))
-       {
-        case 0: //20YYZZ
-         Varb0003 = false; Varb0004 = false; Varb0005 = false;
-         if(Database_Input[(Database_Exist[Varb0001] * 7) + 3] > 1 && Database_Input[(Database_Exist[Varb0001] * 7) + 5] == 1) Varb0003 = true;
-         if(Database_Input[(Database_Exist[Varb0001] * 7) + 3] == 1 && Database_Input[(Database_Exist[Varb0001] * 7) + 5] > 1){Varb0003 = true; Varb0004 = true;}
-         if(Database_Input[(Database_Exist[Varb0001] * 7) + 4] > 1 && Database_Input[(Database_Exist[Varb0001] * 7) + 6] == 1){Varb0005 = true; if(Varb0003){if(Varb0004){XVelUp(Database_Exist[Varb0001], -(game.objects[Database_Exist[Varb0001]].data.walking_speed * Database_Status[(Database_Exist[Varb0001] * 12) + 9] * MovementBaseRatio * MovementWalkRatio * MovementSideRatio)); ZVelUp(Database_Exist[Varb0001], (game.objects[Database_Exist[Varb0001]].data.walking_speed * PrespectiveRatio * Database_Status[(Database_Exist[Varb0001] * 12) + 9] * MovementBaseRatio * MovementWalkRatio * MovementSideRatio));} else {XVelUp(Database_Exist[Varb0001], -(game.objects[Database_Exist[Varb0001]].data.walking_speed * Database_Status[(Database_Exist[Varb0001] * 12) + 9] * MovementBaseRatio * MovementWalkRatio * MovementSideRatio)); ZVelUp(Database_Exist[Varb0001], -(game.objects[Database_Exist[Varb0001]].data.walking_speed * PrespectiveRatio * Database_Status[(Database_Exist[Varb0001] * 12) + 9] * MovementBaseRatio * MovementWalkRatio * MovementSideRatio));}} else {XVelUp(Database_Exist[Varb0001], -(game.objects[Database_Exist[Varb0001]].data.walking_speed * Database_Status[(Database_Exist[Varb0001] * 12) + 9] * MovementBaseRatio * MovementWalkRatio));}}
-         if(Database_Input[(Database_Exist[Varb0001] * 7) + 4] == 1 && Database_Input[(Database_Exist[Varb0001] * 7) + 6] > 1){Varb0005 = true; if(Varb0003){if(Varb0004){XVelUp(Database_Exist[Varb0001], (game.objects[Database_Exist[Varb0001]].data.walking_speed * Database_Status[(Database_Exist[Varb0001] * 12) + 9] * MovementBaseRatio * MovementWalkRatio * MovementSideRatio)); ZVelUp(Database_Exist[Varb0001], (game.objects[Database_Exist[Varb0001]].data.walking_speed * PrespectiveRatio * Database_Status[(Database_Exist[Varb0001] * 12) + 9] * MovementBaseRatio * MovementWalkRatio * MovementSideRatio));} else {XVelUp(Database_Exist[Varb0001], (game.objects[Database_Exist[Varb0001]].data.walking_speed * Database_Status[(Database_Exist[Varb0001] * 12) + 9] * MovementBaseRatio * MovementWalkRatio * MovementSideRatio)); ZVelUp(Database_Exist[Varb0001], -(game.objects[Database_Exist[Varb0001]].data.walking_speed * PrespectiveRatio * Database_Status[(Database_Exist[Varb0001] * 12) + 9] * MovementBaseRatio * MovementWalkRatio * MovementSideRatio));}} else {XVelUp(Database_Exist[Varb0001], (game.objects[Database_Exist[Varb0001]].data.walking_speed * Database_Status[(Database_Exist[Varb0001] * 12) + 9] * MovementBaseRatio * MovementWalkRatio));}}
-         if(!Varb0005 && Varb0003){if(Varb0004){ZVelUp(Database_Exist[Varb0001], (game.objects[Database_Exist[Varb0001]].data.walking_speed * PrespectiveRatio * Database_Status[(Database_Exist[Varb0001] * 12) + 9] * MovementBaseRatio * MovementWalkRatio));} else {{ZVelUp(Database_Exist[Varb0001], -(game.objects[Database_Exist[Varb0001]].data.walking_speed * PrespectiveRatio * Database_Status[(Database_Exist[Varb0001] * 12) + 9] * MovementBaseRatio * MovementWalkRatio));}}}
-         if(Varb0003 || Varb0005) switch((StateEjection(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].frame1, 0) % 10))
-         {
-          case 1:
-           Database_WalkSys[Database_Exist[Varb0001]] += 1;
-           Database_WalkSys[Database_Exist[Varb0001]] = 1000 + (Database_WalkSys[Database_Exist[Varb0001]] % 1000);
-           if(Database_WalkSys[Database_Exist[Varb0001]] % 1000 >= ((StateEjection(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].frame1, 1) % 10000) / 10))
-           {
-            Database_WalkSys[Database_Exist[Varb0001]] = 1000; Control_Frame1(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].frame1 + 1);
-           } else {Control_WaitCounter(Database_Exist[Varb0001], 0);}
-          break;
-          case 2:
-           if(Database_WalkSys[Database_Exist[Varb0001]] == 0) Database_WalkSys[Database_Exist[Varb0001]] = 1000;
-           Database_WalkSys[Database_Exist[Varb0001]] += 1;
-           if(Database_WalkSys[Database_Exist[Varb0001]] % 1000 >= ((StateEjection(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].frame1, 1) % 10000) / 10))
-           {
-            Database_WalkSys[Database_Exist[Varb0001]] -= Database_WalkSys[Database_Exist[Varb0001]] % 1000;
-            if(Database_WalkSys[Database_Exist[Varb0001]] == 1000) Control_Frame1(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].frame1 + 1);
-            if(Database_WalkSys[Database_Exist[Varb0001]] == 2000) Control_Frame1(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].frame1 - 1);
-           } else {Control_WaitCounter(Database_Exist[Varb0001], 0);}
-          break;
-          case 3:
-           Database_WalkSys[Database_Exist[Varb0001]] += 1;
-           Database_WalkSys[Database_Exist[Varb0001]] = 2000 + (Database_WalkSys[Database_Exist[Varb0001]] % 1000);
-           if(Database_WalkSys[Database_Exist[Varb0001]] % 1000 >= ((StateEjection(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].frame1, 1) % 10000) / 10))
-           {
-            Database_WalkSys[Database_Exist[Varb0001]] = 2000; Control_Frame1(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].frame1 - 1);
-           } else {Control_WaitCounter(Database_Exist[Varb0001], 0);}
-          break;
-          default: break;
-         }
-        break;
-        case 10000: //21YYZZ
-         Varb0003 = false;
-         if(Database_Input[(Database_Exist[Varb0001] * 7) + 3] > 1 && Database_Input[(Database_Exist[Varb0001] * 7) + 5] == 1){Varb0003 = true; ZVelUp(Database_Exist[Varb0001], -(game.objects[Database_Exist[Varb0001]].data.walking_speed * PrespectiveRatio * Database_Status[(Database_Exist[Varb0001] * 12) + 9] * MovementBaseRatio * MovementRunRatio * MovementSideRatio));}
-         if(Database_Input[(Database_Exist[Varb0001] * 7) + 5] > 1 && Database_Input[(Database_Exist[Varb0001] * 7) + 3] == 1){Varb0003 = true; ZVelUp(Database_Exist[Varb0001], (game.objects[Database_Exist[Varb0001]].data.walking_speed * PrespectiveRatio * Database_Status[(Database_Exist[Varb0001] * 12) + 9] * MovementBaseRatio * MovementRunRatio * MovementSideRatio));}
-         if(!game.objects[Database_Exist[Varb0001]].facing){if(Varb0003){XVelUp(Database_Exist[Varb0001], (game.objects[Database_Exist[Varb0001]].data.walking_speed * Database_Status[(Database_Exist[Varb0001] * 12) + 9] * MovementBaseRatio * MovementRunRatio * MovementSideRatio));} else {XVelUp(Database_Exist[Varb0001], (game.objects[Database_Exist[Varb0001]].data.walking_speed * Database_Status[(Database_Exist[Varb0001] * 12) + 9] * MovementBaseRatio * MovementRunRatio));}} else {if(Varb0003){XVelUp(Database_Exist[Varb0001], -(game.objects[Database_Exist[Varb0001]].data.walking_speed * Database_Status[(Database_Exist[Varb0001] * 12) + 9] * MovementBaseRatio * MovementRunRatio * MovementSideRatio));} else {XVelUp(Database_Exist[Varb0001], -(game.objects[Database_Exist[Varb0001]].data.walking_speed * Database_Status[(Database_Exist[Varb0001] * 12) + 9] * MovementBaseRatio * MovementRunRatio));}}
-         switch((StateEjection(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].frame1, 0) % 10))
-         {
-          case 1:
-           Database_WalkSys[Database_Exist[Varb0001]] += 1;
-           Database_WalkSys[Database_Exist[Varb0001]] = 1000 + (Database_WalkSys[Database_Exist[Varb0001]] % 1000);
-           if(Database_WalkSys[Database_Exist[Varb0001]] % 1000 >= ((StateEjection(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].frame1, 1) % 10000) / 10))
-           {
-            Database_WalkSys[Database_Exist[Varb0001]] = 1000; Control_Frame1(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].frame1 + 1);
-           } else {Control_WaitCounter(Database_Exist[Varb0001], 0);}
-          break;
-          case 2:
-           if(Database_WalkSys[Database_Exist[Varb0001]] == 0) Database_WalkSys[Database_Exist[Varb0001]] = 1000;
-           Database_WalkSys[Database_Exist[Varb0001]] += 1;
-           if(Database_WalkSys[Database_Exist[Varb0001]] % 1000 >= ((StateEjection(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].frame1, 1) % 10000) / 10))
-           {
-            Database_WalkSys[Database_Exist[Varb0001]] -= Database_WalkSys[Database_Exist[Varb0001]] % 1000;
-            if(Database_WalkSys[Database_Exist[Varb0001]] == 1000) Control_Frame1(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].frame1 + 1);
-            if(Database_WalkSys[Database_Exist[Varb0001]] == 2000) Control_Frame1(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].frame1 - 1);
-           } else {Control_WaitCounter(Database_Exist[Varb0001], 0);}
-          break;
-          case 3:
-           Database_WalkSys[Database_Exist[Varb0001]] += 1;
-           Database_WalkSys[Database_Exist[Varb0001]] = 2000 + (Database_WalkSys[Database_Exist[Varb0001]] % 1000);
-           if(Database_WalkSys[Database_Exist[Varb0001]] % 1000 >= ((StateEjection(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].frame1, 1) % 10000) / 10))
-           {
-            Database_WalkSys[Database_Exist[Varb0001]] = 2000; Control_Frame1(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].frame1 - 1);
-           } else {Control_WaitCounter(Database_Exist[Varb0001], 0);}
-          break;
-          default: break;
-         }
-        break;
-        case 20000: //22YYZZ
-         Varb0003 = false; Varb0004 = false; Varb0005 = false;
-         if(Database_Input[(Database_Exist[Varb0001] * 7) + 3] > 1 && Database_Input[(Database_Exist[Varb0001] * 7) + 5] == 1) Varb0003 = true;
-         if(Database_Input[(Database_Exist[Varb0001] * 7) + 3] == 1 && Database_Input[(Database_Exist[Varb0001] * 7) + 5] > 1){Varb0003 = true; Varb0004 = true;}
-         if(Database_Input[(Database_Exist[Varb0001] * 7) + 4] > 1 && Database_Input[(Database_Exist[Varb0001] * 7) + 6] == 1){Varb0005 = true; if(Varb0003){if(Varb0004){XVelUp(Database_Exist[Varb0001], -(game.objects[Database_Exist[Varb0001]].data.walking_speed * Database_Status[(Database_Exist[Varb0001] * 12) + 9] * MovementBaseRatio * MovementHeavyRatio * MovementWalkRatio * MovementSideRatio)); ZVelUp(Database_Exist[Varb0001], (game.objects[Database_Exist[Varb0001]].data.walking_speed * PrespectiveRatio * Database_Status[(Database_Exist[Varb0001] * 12) + 9] * MovementBaseRatio * MovementHeavyRatio * MovementWalkRatio * MovementSideRatio));} else {XVelUp(Database_Exist[Varb0001], -(game.objects[Database_Exist[Varb0001]].data.walking_speed * Database_Status[(Database_Exist[Varb0001] * 12) + 9] * MovementBaseRatio * MovementHeavyRatio * MovementWalkRatio * MovementSideRatio)); ZVelUp(Database_Exist[Varb0001], -(game.objects[Database_Exist[Varb0001]].data.walking_speed * PrespectiveRatio * Database_Status[(Database_Exist[Varb0001] * 12) + 9] * MovementBaseRatio * MovementHeavyRatio * MovementWalkRatio * MovementSideRatio));}} else {XVelUp(Database_Exist[Varb0001], -(game.objects[Database_Exist[Varb0001]].data.walking_speed * Database_Status[(Database_Exist[Varb0001] * 12) + 9] * MovementBaseRatio * MovementHeavyRatio * MovementWalkRatio));}}
-         if(Database_Input[(Database_Exist[Varb0001] * 7) + 4] == 1 && Database_Input[(Database_Exist[Varb0001] * 7) + 6] > 1){Varb0005 = true; if(Varb0003){if(Varb0004){XVelUp(Database_Exist[Varb0001], (game.objects[Database_Exist[Varb0001]].data.walking_speed * Database_Status[(Database_Exist[Varb0001] * 12) + 9] * MovementBaseRatio * MovementHeavyRatio * MovementWalkRatio * MovementSideRatio)); ZVelUp(Database_Exist[Varb0001], (game.objects[Database_Exist[Varb0001]].data.walking_speed * PrespectiveRatio * Database_Status[(Database_Exist[Varb0001] * 12) + 9] * MovementBaseRatio * MovementHeavyRatio * MovementWalkRatio * MovementSideRatio));} else {XVelUp(Database_Exist[Varb0001], (game.objects[Database_Exist[Varb0001]].data.walking_speed * Database_Status[(Database_Exist[Varb0001] * 12) + 9] * MovementBaseRatio * MovementHeavyRatio * MovementWalkRatio * MovementSideRatio)); ZVelUp(Database_Exist[Varb0001], -(game.objects[Database_Exist[Varb0001]].data.walking_speed * PrespectiveRatio * Database_Status[(Database_Exist[Varb0001] * 12) + 9] * MovementBaseRatio * MovementHeavyRatio * MovementWalkRatio * MovementSideRatio));}} else {XVelUp(Database_Exist[Varb0001], (game.objects[Database_Exist[Varb0001]].data.walking_speed * Database_Status[(Database_Exist[Varb0001] * 12) + 9] * MovementBaseRatio * MovementHeavyRatio * MovementWalkRatio));}}
-         if(!Varb0005 && Varb0003){if(Varb0004){ZVelUp(Database_Exist[Varb0001], (game.objects[Database_Exist[Varb0001]].data.walking_speed * PrespectiveRatio * Database_Status[(Database_Exist[Varb0001] * 12) + 9] * MovementBaseRatio * MovementHeavyRatio * MovementWalkRatio));} else {{ZVelUp(Database_Exist[Varb0001], -(game.objects[Database_Exist[Varb0001]].data.walking_speed * PrespectiveRatio * Database_Status[(Database_Exist[Varb0001] * 12) + 9] * MovementBaseRatio * MovementHeavyRatio * MovementWalkRatio));}}}
-         if(Varb0003 || Varb0005) switch((StateEjection(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].frame1, 0) % 10))
-         {
-          case 1:
-           Database_WalkSys[Database_Exist[Varb0001]] += 1;
-           Database_WalkSys[Database_Exist[Varb0001]] = 1000 + (Database_WalkSys[Database_Exist[Varb0001]] % 1000);
-           if(Database_WalkSys[Database_Exist[Varb0001]] % 1000 >= ((StateEjection(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].frame1, 1) % 10000) / 10))
-           {
-            Database_WalkSys[Database_Exist[Varb0001]] = 1000; Control_Frame1(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].frame1 + 1);
-           } else {Control_WaitCounter(Database_Exist[Varb0001], 0);}
-          break;
-          case 2:
-           if(Database_WalkSys[Database_Exist[Varb0001]] == 0) Database_WalkSys[Database_Exist[Varb0001]] = 1000;
-           Database_WalkSys[Database_Exist[Varb0001]] += 1;
-           if(Database_WalkSys[Database_Exist[Varb0001]] % 1000 >= ((StateEjection(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].frame1, 1) % 10000) / 10))
-           {
-            Database_WalkSys[Database_Exist[Varb0001]] -= Database_WalkSys[Database_Exist[Varb0001]] % 1000;
-            if(Database_WalkSys[Database_Exist[Varb0001]] == 1000) Control_Frame1(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].frame1 + 1);
-            if(Database_WalkSys[Database_Exist[Varb0001]] == 2000) Control_Frame1(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].frame1 - 1);
-           } else {Control_WaitCounter(Database_Exist[Varb0001], 0);}
-          break;
-          case 3:
-           Database_WalkSys[Database_Exist[Varb0001]] += 1;
-           Database_WalkSys[Database_Exist[Varb0001]] = 2000 + (Database_WalkSys[Database_Exist[Varb0001]] % 1000);
-           if(Database_WalkSys[Database_Exist[Varb0001]] % 1000 >= ((StateEjection(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].frame1, 1) % 10000) / 10))
-           {
-            Database_WalkSys[Database_Exist[Varb0001]] = 2000; Control_Frame1(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].frame1 - 1);
-           } else {Control_WaitCounter(Database_Exist[Varb0001], 0);}
-          break;
-          default: break;
-         }
-        break;
-        case 30000: //23YYZZ
-         Varb0003 = false;
-         if(Database_Input[(Database_Exist[Varb0001] * 7) + 3] > 1 && Database_Input[(Database_Exist[Varb0001] * 7) + 5] == 1){Varb0003 = true; ZVelUp(Database_Exist[Varb0001], -(game.objects[Database_Exist[Varb0001]].data.walking_speed * PrespectiveRatio * Database_Status[(Database_Exist[Varb0001] * 12) + 9] * MovementBaseRatio * MovementHeavyRatio * MovementRunRatio * MovementSideRatio));}
-         if(Database_Input[(Database_Exist[Varb0001] * 7) + 5] > 1 && Database_Input[(Database_Exist[Varb0001] * 7) + 3] == 1){Varb0003 = true; ZVelUp(Database_Exist[Varb0001], (game.objects[Database_Exist[Varb0001]].data.walking_speed * PrespectiveRatio * Database_Status[(Database_Exist[Varb0001] * 12) + 9] * MovementBaseRatio * MovementHeavyRatio * MovementRunRatio * MovementSideRatio));}
-         if(!game.objects[Database_Exist[Varb0001]].facing){if(Varb0003){XVelUp(Database_Exist[Varb0001], (game.objects[Database_Exist[Varb0001]].data.walking_speed * Database_Status[(Database_Exist[Varb0001] * 12) + 9] * MovementBaseRatio * MovementHeavyRatio * MovementRunRatio * MovementSideRatio));} else {XVelUp(Database_Exist[Varb0001], (game.objects[Database_Exist[Varb0001]].data.walking_speed * Database_Status[(Database_Exist[Varb0001] * 12) + 9] * MovementBaseRatio * MovementHeavyRatio * MovementRunRatio));}} else {if(Varb0003){XVelUp(Database_Exist[Varb0001], -(game.objects[Database_Exist[Varb0001]].data.walking_speed * Database_Status[(Database_Exist[Varb0001] * 12) + 9] * MovementBaseRatio * MovementHeavyRatio * MovementRunRatio * MovementSideRatio));} else {XVelUp(Database_Exist[Varb0001], -(game.objects[Database_Exist[Varb0001]].data.walking_speed * Database_Status[(Database_Exist[Varb0001] * 12) + 9] * MovementBaseRatio * MovementHeavyRatio * MovementRunRatio));}}
-         switch((StateEjection(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].frame1, 0) % 10))
-         {
-          case 1:
-           Database_WalkSys[Database_Exist[Varb0001]] += 1;
-           Database_WalkSys[Database_Exist[Varb0001]] = 1000 + (Database_WalkSys[Database_Exist[Varb0001]] % 1000);
-           if(Database_WalkSys[Database_Exist[Varb0001]] % 1000 >= ((StateEjection(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].frame1, 1) % 10000) / 10))
-           {
-            Database_WalkSys[Database_Exist[Varb0001]] = 1000; Control_Frame1(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].frame1 + 1);
-           } else {Control_WaitCounter(Database_Exist[Varb0001], 0);}
-          break;
-          case 2:
-           if(Database_WalkSys[Database_Exist[Varb0001]] == 0) Database_WalkSys[Database_Exist[Varb0001]] = 1000;
-           Database_WalkSys[Database_Exist[Varb0001]] += 1;
-           if(Database_WalkSys[Database_Exist[Varb0001]] % 1000 >= ((StateEjection(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].frame1, 1) % 10000) / 10))
-           {
-            Database_WalkSys[Database_Exist[Varb0001]] -= Database_WalkSys[Database_Exist[Varb0001]] % 1000;
-            if(Database_WalkSys[Database_Exist[Varb0001]] == 1000) Control_Frame1(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].frame1 + 1);
-            if(Database_WalkSys[Database_Exist[Varb0001]] == 2000) Control_Frame1(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].frame1 - 1);
-           } else {Control_WaitCounter(Database_Exist[Varb0001], 0);}
-          break;
-          case 3:
-           Database_WalkSys[Database_Exist[Varb0001]] += 1;
-           Database_WalkSys[Database_Exist[Varb0001]] = 2000 + (Database_WalkSys[Database_Exist[Varb0001]] % 1000);
-           if(Database_WalkSys[Database_Exist[Varb0001]] % 1000 >= ((StateEjection(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].frame1, 1) % 10000) / 10))
-           {
-            Database_WalkSys[Database_Exist[Varb0001]] = 2000; Control_Frame1(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].frame1 - 1);
-           } else {Control_WaitCounter(Database_Exist[Varb0001], 0);}
-          break;
-          default: break;
-         }
-        break;
-        case 40000:
-         switch((StateEjection(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].frame1, 3) % 10000))
-         {
-          case 4000:
-          break;
-          default: break;
-         }
-        break;
-        default: break;
-       }
-      break;
-      case 300000:
-       switch((StateEjection(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].frame1, 4) % 100000))
-       {
-        case 0:
-         switch((StateEjection(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].frame1, 3) % 10000))
-         {
-          case 0:
-           switch((StateEjection(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].frame1, 0) % 10))
-           {
-            case 1:
-             Varb0018 = false;
-            break;
-            case 3:
-             Varb0018 = false;
-            break;
-            case 4:
-             Varb0018 = false;
-            break;
-            case 5:
-             Varb0018 = false;
-            break;
-            case 6:
-             Varb0018 = false;
-             if(Database_Status[(Database_Exist[Varb0001] * 12) + 6] == 0)
-             {
-              if(Database_Status[(Database_Exist[Varb0001] * 12) + 8] == 0)
-              Database_LastVel[Database_Exist[Varb0001]] = 0;
-              if(Database_Status[(Database_Exist[Varb0001] * 12) + 8] < 0)
-              Database_LastVel[Database_Exist[Varb0001]] = 1;
-              if(Database_Status[(Database_Exist[Varb0001] * 12) + 8] > 0)
-              Database_LastVel[Database_Exist[Varb0001]] = 5;
-             }
-             if(Database_Status[(Database_Exist[Varb0001] * 12) + 6] < 0)
-             {
-              if(Database_Status[(Database_Exist[Varb0001] * 12) + 8] == 0)
-              Database_LastVel[Database_Exist[Varb0001]] = 7;
-              if(Database_Status[(Database_Exist[Varb0001] * 12) + 8] < 0)
-              Database_LastVel[Database_Exist[Varb0001]] = 8;
-              if(Database_Status[(Database_Exist[Varb0001] * 12) + 8] > 0)
-              Database_LastVel[Database_Exist[Varb0001]] = 6;
-             }
-             if(Database_Status[(Database_Exist[Varb0001] * 12) + 6] > 0)
-             {
-              if(Database_Status[(Database_Exist[Varb0001] * 12) + 8] == 0)
-              Database_LastVel[Database_Exist[Varb0001]] = 3;
-              if(Database_Status[(Database_Exist[Varb0001] * 12) + 8] < 0)
-              Database_LastVel[Database_Exist[Varb0001]] = 2;
-              if(Database_Status[(Database_Exist[Varb0001] * 12) + 8] > 0)
-              Database_LastVel[Database_Exist[Varb0001]] = 4;
-             }
-            break;
-            default: break;
-           }
-          break;
-          default: break;
-         }
-        break;
-        case 10000:
-         Varb0018 = false;
-        break;
-        default: break;
-       }
-      break;
-      default: break;
-     }
-     if(Varb0018) if(Database_ToGround[Database_Exist[Varb0001]] > 0) Control_Frame1(Database_Exist[Varb0001], StateEjection(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].frame1, 6) / 1000000);
-    }
-   //-//
-
-   //Position Memorizing
-    array < double > Varb0011 = MaximumObjNum * 3;
-    for(Varb0001 = 0; Varb0001 < NumberOfExist; ++Varb0001)
-    {
-     Varb0011[(Database_Exist[Varb0001] * 3)] = Database_Status[(Database_Exist[Varb0001] * 12) + 3];
-     Varb0011[(Database_Exist[Varb0001] * 3) + 1] = Database_Status[(Database_Exist[Varb0001] * 12) + 4];
-     Varb0011[(Database_Exist[Varb0001] * 3) + 2] = Database_Status[(Database_Exist[Varb0001] * 12) + 5];
-    }
-   //-//
-
-   //Early Itr Declarament
-
-   //-//
-
-   //Cpoint Declarament
-
-   //-//
-
-   //Wpoint Declarament
-
-   //-//
-
-   //Itr Declarament
-
-   //-//
-
-   //Velocity Calculation 
-    for(Varb0001 = 0; Varb0001 < NumberOfExist; ++Varb0001)
-    {
-     switch(Iabs(game.objects[Database_Exist[Varb0001]].data.frames[game.objects[Database_Exist[Varb0001]].frame1].hit_Dj - (game.objects[Database_Exist[Varb0001]].data.frames[game.objects[Database_Exist[Varb0001]].frame1].hit_Dj % 10000000)))
-     {
-      case 0:
-       if(game.objects[Database_Exist[Varb0001]].facing)
-       {
-        XVelUp(Database_Exist[Varb0001], - Iabs(game.objects[Database_Exist[Varb0001]].data.frames[game.objects[Database_Exist[Varb0001]].frame1].hit_Dj % 10000000) * 0.001);
-       } else
-       {
-        XVelUp(Database_Exist[Varb0001], Iabs(game.objects[Database_Exist[Varb0001]].data.frames[game.objects[Database_Exist[Varb0001]].frame1].hit_Dj % 10000000) * 0.001);
-       }
-      break;
-      case 10000000:
-       if(game.objects[Database_Exist[Varb0001]].facing)
-       {
-        XVelUp(Database_Exist[Varb0001], Iabs(game.objects[Database_Exist[Varb0001]].data.frames[game.objects[Database_Exist[Varb0001]].frame1].hit_Dj % 10000000) * 0.001);
-       } else
-       {
-        XVelUp(Database_Exist[Varb0001], - Iabs(game.objects[Database_Exist[Varb0001]].data.frames[game.objects[Database_Exist[Varb0001]].frame1].hit_Dj % 10000000) * 0.001);
-       }
-      break;
-      case 20000000:
-       if(game.objects[Database_Exist[Varb0001]].facing)
-       {
-        Database_Status[(Database_Exist[Varb0001] * 12) + 6] = - Iabs(game.objects[Database_Exist[Varb0001]].data.frames[game.objects[Database_Exist[Varb0001]].frame1].hit_Dj % 10000000) * 0.001;
-       } else
-       {
-        Database_Status[(Database_Exist[Varb0001] * 12) + 6] = Iabs(game.objects[Database_Exist[Varb0001]].data.frames[game.objects[Database_Exist[Varb0001]].frame1].hit_Dj % 10000000) * 0.001;
-       }
-      break;
-      case 30000000:
-       if(game.objects[Database_Exist[Varb0001]].facing)
-       {
-        Database_Status[(Database_Exist[Varb0001] * 12) + 6] = Iabs(game.objects[Database_Exist[Varb0001]].data.frames[game.objects[Database_Exist[Varb0001]].frame1].hit_Dj % 10000000) * 0.001;
-       } else
-       {
-        Database_Status[(Database_Exist[Varb0001] * 12) + 6] = - Iabs(game.objects[Database_Exist[Varb0001]].data.frames[game.objects[Database_Exist[Varb0001]].frame1].hit_Dj % 10000000) * 0.001;
-       }
-      break;
-      case 40000000:
-       if(game.objects[Database_Exist[Varb0001]].shake == 0)
-       if(game.objects[Database_Exist[Varb0001]].facing)
-       {
-        Database_Status[(Database_Exist[Varb0001] * 12) + 3] -= Iabs(game.objects[Database_Exist[Varb0001]].data.frames[game.objects[Database_Exist[Varb0001]].frame1].hit_Dj) % 10000000;
-       } else
-       {
-        Database_Status[(Database_Exist[Varb0001] * 12) + 3] += Iabs(game.objects[Database_Exist[Varb0001]].data.frames[game.objects[Database_Exist[Varb0001]].frame1].hit_Dj) % 10000000;
-       }
-      break;
-      case 50000000:
-       if(game.objects[Database_Exist[Varb0001]].shake == 0)
-       if(game.objects[Database_Exist[Varb0001]].facing)
-       {
-        Database_Status[(Database_Exist[Varb0001] * 12) + 3] += Iabs(game.objects[Database_Exist[Varb0001]].data.frames[game.objects[Database_Exist[Varb0001]].frame1].hit_Dj) % 10000000;
-       } else
-       {
-        Database_Status[(Database_Exist[Varb0001] * 12) + 3] -= Iabs(game.objects[Database_Exist[Varb0001]].data.frames[game.objects[Database_Exist[Varb0001]].frame1].hit_Dj) % 10000000;
-       }
-      break;
-      case 60000000:
-       if(game.objects[Database_Exist[Varb0001]].facing)
-       {
-        XVelUp(Database_Exist[Varb0001], -(game.objects[Database_Exist[Varb0001]].data.walking_speed * Database_Status[(Database_Exist[Varb0001] * 12) + 9] * MovementBaseRatio * (Iabs(game.objects[Database_Exist[Varb0001]].data.frames[game.objects[Database_Exist[Varb0001]].frame1].hit_Dj % 10000000) * 0.00001)));
-       } else
-       {
-        XVelUp(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].data.walking_speed * Database_Status[(Database_Exist[Varb0001] * 12) + 9] * MovementBaseRatio * (Iabs(game.objects[Database_Exist[Varb0001]].data.frames[game.objects[Database_Exist[Varb0001]].frame1].hit_Dj % 10000000) * 0.00001));
-       }
-      break;
-      case 70000000:
-       if(game.objects[Database_Exist[Varb0001]].facing)
-       {
-        XVelUp(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].data.walking_speed * Database_Status[(Database_Exist[Varb0001] * 12) + 9] * MovementBaseRatio * (Iabs(game.objects[Database_Exist[Varb0001]].data.frames[game.objects[Database_Exist[Varb0001]].frame1].hit_Dj % 10000000) * 0.00001));
-       } else
-       {
-        XVelUp(Database_Exist[Varb0001], -(game.objects[Database_Exist[Varb0001]].data.walking_speed * Database_Status[(Database_Exist[Varb0001] * 12) + 9] * MovementBaseRatio * (Iabs(game.objects[Database_Exist[Varb0001]].data.frames[game.objects[Database_Exist[Varb0001]].frame1].hit_Dj % 10000000) * 0.00001)));
-       }
-      break;
-      case 80000000:
-       if(Database_Input[(Database_Exist[Varb0001] * 7) + 6] > 1 && Database_Input[(Database_Exist[Varb0001] * 7) + 4] == 1)
-       XVelUp(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].data.walking_speed * Database_Status[(Database_Exist[Varb0001] * 12) + 9] * MovementBaseRatio * (Iabs(game.objects[Database_Exist[Varb0001]].data.frames[game.objects[Database_Exist[Varb0001]].frame1].hit_Dj % 10000000) * 0.00001));
-       if(Database_Input[(Database_Exist[Varb0001] * 7) + 4] > 1 && Database_Input[(Database_Exist[Varb0001] * 7) + 6] == 1)
-       XVelUp(Database_Exist[Varb0001], -(game.objects[Database_Exist[Varb0001]].data.walking_speed * Database_Status[(Database_Exist[Varb0001] * 12) + 9] * MovementBaseRatio * (Iabs(game.objects[Database_Exist[Varb0001]].data.frames[game.objects[Database_Exist[Varb0001]].frame1].hit_Dj % 10000000) * 0.00001)));
-      break;
-      case 90000000:
-      if(Database_Input[(Database_Exist[Varb0001] * 7) + 6] > 1 && Database_Input[(Database_Exist[Varb0001] * 7) + 4] == 1)
-       {
-        if(Database_Input[(Database_Exist[Varb0001] * 7) + 3] == 1 && Database_Input[(Database_Exist[Varb0001] * 7) + 5] == 1)
-        XVelUp(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].data.walking_speed * Database_Status[(Database_Exist[Varb0001] * 12) + 9] * MovementBaseRatio * (Iabs(game.objects[Database_Exist[Varb0001]].data.frames[game.objects[Database_Exist[Varb0001]].frame1].hit_Dj % 10000000) * 0.00001));
-        if((Database_Input[(Database_Exist[Varb0001] * 7) + 3] > 1 && Database_Input[(Database_Exist[Varb0001] * 7) + 5] == 1) || (Database_Input[(Database_Exist[Varb0001] * 7) + 5] > 1 && Database_Input[(Database_Exist[Varb0001] * 7) + 3] == 1))
-        XVelUp(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].data.walking_speed * Database_Status[(Database_Exist[Varb0001] * 12) + 9] * MovementBaseRatio * MovementSideRatio * (Iabs(game.objects[Database_Exist[Varb0001]].data.frames[game.objects[Database_Exist[Varb0001]].frame1].hit_Dj % 10000000) * 0.00001));
-       }
-       if(Database_Input[(Database_Exist[Varb0001] * 7) + 4] > 1 && Database_Input[(Database_Exist[Varb0001] * 7) + 6] == 1)
-       {
-        if(Database_Input[(Database_Exist[Varb0001] * 7) + 3] == 1 && Database_Input[(Database_Exist[Varb0001] * 7) + 5] == 1)
-        XVelUp(Database_Exist[Varb0001], -(game.objects[Database_Exist[Varb0001]].data.walking_speed * Database_Status[(Database_Exist[Varb0001] * 12) + 9] * MovementBaseRatio * (Iabs(game.objects[Database_Exist[Varb0001]].data.frames[game.objects[Database_Exist[Varb0001]].frame1].hit_Dj % 10000000) * 0.00001)));
-        if((Database_Input[(Database_Exist[Varb0001] * 7) + 3] > 1 && Database_Input[(Database_Exist[Varb0001] * 7) + 5] == 1) || (Database_Input[(Database_Exist[Varb0001] * 7) + 5] > 1 && Database_Input[(Database_Exist[Varb0001] * 7) + 3] == 1))
-        XVelUp(Database_Exist[Varb0001], -(game.objects[Database_Exist[Varb0001]].data.walking_speed * Database_Status[(Database_Exist[Varb0001] * 12) + 9] * MovementBaseRatio * MovementSideRatio * (Iabs(game.objects[Database_Exist[Varb0001]].data.frames[game.objects[Database_Exist[Varb0001]].frame1].hit_Dj % 10000000) * 0.00001)));
-       }
-      break;
-      default: break;
-     }
-     switch(Iabs(game.objects[Database_Exist[Varb0001]].data.frames[game.objects[Database_Exist[Varb0001]].frame1].hit_Ua - (game.objects[Database_Exist[Varb0001]].data.frames[game.objects[Database_Exist[Varb0001]].frame1].hit_Ua % 10000000)))
-     {
-      case 0:
-       YVelUp(Database_Exist[Varb0001], Iabs(game.objects[Database_Exist[Varb0001]].data.frames[game.objects[Database_Exist[Varb0001]].frame1].hit_Ua % 10000000) * 0.001);
-      break;
-      case 10000000:
-       YVelUp(Database_Exist[Varb0001], - Iabs(game.objects[Database_Exist[Varb0001]].data.frames[game.objects[Database_Exist[Varb0001]].frame1].hit_Ua % 10000000) * 0.001);
-      break;
-      case 20000000:
-       Database_Status[(Database_Exist[Varb0001] * 12) + 7] = Iabs(game.objects[Database_Exist[Varb0001]].data.frames[game.objects[Database_Exist[Varb0001]].frame1].hit_Ua % 10000000) * 0.001;
-      break;
-      case 30000000:
-       Database_Status[(Database_Exist[Varb0001] * 12) + 7] = - Iabs(game.objects[Database_Exist[Varb0001]].data.frames[game.objects[Database_Exist[Varb0001]].frame1].hit_Ua % 10000000) * 0.001;
-      break;
-      case 40000000:
-       if(game.objects[Database_Exist[Varb0001]].shake == 0)
-       Database_Status[(Database_Exist[Varb0001] * 12) + 4] += Iabs(game.objects[Database_Exist[Varb0001]].data.frames[game.objects[Database_Exist[Varb0001]].frame1].hit_Ua % 10000000) * 0.001;
-      break;
-      case 50000000:
-       if(game.objects[Database_Exist[Varb0001]].shake == 0)
-       Database_Status[(Database_Exist[Varb0001] * 12) + 4] -= Iabs(game.objects[Database_Exist[Varb0001]].data.frames[game.objects[Database_Exist[Varb0001]].frame1].hit_Ua % 10000000) * 0.001;
-      break;
-      case 60000000:
-       YVelUp(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].data.walking_speed * Database_Status[(Database_Exist[Varb0001] * 12) + 9] * MovementBaseRatio * (Iabs(game.objects[Database_Exist[Varb0001]].data.frames[game.objects[Database_Exist[Varb0001]].frame1].hit_Ua % 10000000) * 0.00001));
-      break;
-      case 70000000:
-       YVelUp(Database_Exist[Varb0001], -(game.objects[Database_Exist[Varb0001]].data.walking_speed * Database_Status[(Database_Exist[Varb0001] * 12) + 9] * MovementBaseRatio * (Iabs(game.objects[Database_Exist[Varb0001]].data.frames[game.objects[Database_Exist[Varb0001]].frame1].hit_Ua % 10000000) * 0.00001)));
-      break;
-      case 80000000:
-       if(Database_Input[(Database_Exist[Varb0001] * 7) + 5] > 1 && Database_Input[(Database_Exist[Varb0001] * 7) + 3] == 1)
-       YVelUp(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].data.walking_speed * Database_Status[(Database_Exist[Varb0001] * 12) + 9] * MovementBaseRatio * (Iabs(game.objects[Database_Exist[Varb0001]].data.frames[game.objects[Database_Exist[Varb0001]].frame1].hit_Ua % 10000000) * 0.00001));
-       if(Database_Input[(Database_Exist[Varb0001] * 7) + 3] > 1 && Database_Input[(Database_Exist[Varb0001] * 7) + 5] == 1)
-       YVelUp(Database_Exist[Varb0001], -(game.objects[Database_Exist[Varb0001]].data.walking_speed * Database_Status[(Database_Exist[Varb0001] * 12) + 9] * MovementBaseRatio * (Iabs(game.objects[Database_Exist[Varb0001]].data.frames[game.objects[Database_Exist[Varb0001]].frame1].hit_Ua % 10000000) * 0.00001)));
-      break;
-      case 90000000:
-       if(Database_Input[(Database_Exist[Varb0001] * 7) + 1] > 1 && Database_Input[(Database_Exist[Varb0001] * 7) + 2] == 1)
-       YVelUp(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].data.walking_speed * Database_Status[(Database_Exist[Varb0001] * 12) + 9] * MovementBaseRatio * (Iabs(game.objects[Database_Exist[Varb0001]].data.frames[game.objects[Database_Exist[Varb0001]].frame1].hit_Ua % 10000000) * 0.00001));
-       if(Database_Input[(Database_Exist[Varb0001] * 7) + 2] > 1 && Database_Input[(Database_Exist[Varb0001] * 7) + 1] == 1)
-       YVelUp(Database_Exist[Varb0001], -(game.objects[Database_Exist[Varb0001]].data.walking_speed * Database_Status[(Database_Exist[Varb0001] * 12) + 9] * MovementBaseRatio * (Iabs(game.objects[Database_Exist[Varb0001]].data.frames[game.objects[Database_Exist[Varb0001]].frame1].hit_Ua % 10000000) * 0.00001)));
-      break;
-      default: break;
-     }
-     switch(Iabs(game.objects[Database_Exist[Varb0001]].data.frames[game.objects[Database_Exist[Varb0001]].frame1].hit_Uj - (game.objects[Database_Exist[Varb0001]].data.frames[game.objects[Database_Exist[Varb0001]].frame1].hit_Uj % 10000000)))
-     {
-      case 0:
-       ZVelUp(Database_Exist[Varb0001], Iabs(game.objects[Database_Exist[Varb0001]].data.frames[game.objects[Database_Exist[Varb0001]].frame1].hit_Uj % 10000000) * 0.001);
-      break;
-      case 10000000:
-       ZVelUp(Database_Exist[Varb0001], - Iabs(game.objects[Database_Exist[Varb0001]].data.frames[game.objects[Database_Exist[Varb0001]].frame1].hit_Uj % 10000000) * 0.001);
-      break;
-      case 20000000:
-       Database_Status[(Database_Exist[Varb0001] * 12) + 8] = Iabs(game.objects[Database_Exist[Varb0001]].data.frames[game.objects[Database_Exist[Varb0001]].frame1].hit_Uj % 10000000) * 0.001;
-      break;
-      case 30000000:
-       Database_Status[(Database_Exist[Varb0001] * 12) + 8] = - Iabs(game.objects[Database_Exist[Varb0001]].data.frames[game.objects[Database_Exist[Varb0001]].frame1].hit_Uj % 10000000) * 0.001;
-      break;
-      case 40000000:
-       if(game.objects[Database_Exist[Varb0001]].shake == 0)
-       Database_Status[(Database_Exist[Varb0001] * 12) + 5] += Iabs(game.objects[Database_Exist[Varb0001]].data.frames[game.objects[Database_Exist[Varb0001]].frame1].hit_Uj % 10000000) * 0.001;
-      break;
-      case 50000000:
-       if(game.objects[Database_Exist[Varb0001]].shake == 0)
-       Database_Status[(Database_Exist[Varb0001] * 12) + 5] -= Iabs(game.objects[Database_Exist[Varb0001]].data.frames[game.objects[Database_Exist[Varb0001]].frame1].hit_Uj % 10000000) * 0.001;
-      break;
-      case 60000000:
-       ZVelUp(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].data.walking_speed * PrespectiveRatio * Database_Status[(Database_Exist[Varb0001] * 12) + 9] * MovementBaseRatio * (Iabs(game.objects[Database_Exist[Varb0001]].data.frames[game.objects[Database_Exist[Varb0001]].frame1].hit_Uj % 10000000) * 0.00001));
-      break;
-      case 70000000:
-       ZVelUp(Database_Exist[Varb0001], -(game.objects[Database_Exist[Varb0001]].data.walking_speed * PrespectiveRatio * Database_Status[(Database_Exist[Varb0001] * 12) + 9] * MovementBaseRatio * (Iabs(game.objects[Database_Exist[Varb0001]].data.frames[game.objects[Database_Exist[Varb0001]].frame1].hit_Uj % 10000000) * 0.00001)));
-      break;
-      case 80000000:
-       if(Database_Input[(Database_Exist[Varb0001] * 7) + 5] > 1 && Database_Input[(Database_Exist[Varb0001] * 7) + 3] == 1)
-       ZVelUp(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].data.walking_speed * PrespectiveRatio * Database_Status[(Database_Exist[Varb0001] * 12) + 9] * MovementBaseRatio * (Iabs(game.objects[Database_Exist[Varb0001]].data.frames[game.objects[Database_Exist[Varb0001]].frame1].hit_Uj % 10000000) * 0.00001));
-       if(Database_Input[(Database_Exist[Varb0001] * 7) + 3] > 1 && Database_Input[(Database_Exist[Varb0001] * 7) + 5] == 1)
-       ZVelUp(Database_Exist[Varb0001], -(game.objects[Database_Exist[Varb0001]].data.walking_speed * PrespectiveRatio * Database_Status[(Database_Exist[Varb0001] * 12) + 9] * MovementBaseRatio * (Iabs(game.objects[Database_Exist[Varb0001]].data.frames[game.objects[Database_Exist[Varb0001]].frame1].hit_Uj % 10000000) * 0.00001)));
-      break;
-      case 90000000:
-       if(Database_Input[(Database_Exist[Varb0001] * 7) + 5] > 1 && Database_Input[(Database_Exist[Varb0001] * 7) + 3] == 1)
-       {
-        if(Database_Input[(Database_Exist[Varb0001] * 7) + 4] == 1 && Database_Input[(Database_Exist[Varb0001] * 7) + 6] == 1)
-        ZVelUp(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].data.walking_speed * PrespectiveRatio * Database_Status[(Database_Exist[Varb0001] * 12) + 9] * MovementBaseRatio * (Iabs(game.objects[Database_Exist[Varb0001]].data.frames[game.objects[Database_Exist[Varb0001]].frame1].hit_Uj % 10000000) * 0.00001));
-        if((Database_Input[(Database_Exist[Varb0001] * 7) + 4] > 1 && Database_Input[(Database_Exist[Varb0001] * 7) + 6] == 1) || (Database_Input[(Database_Exist[Varb0001] * 7) + 6] > 1 && Database_Input[(Database_Exist[Varb0001] * 7) + 4] == 1))
-        ZVelUp(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].data.walking_speed * PrespectiveRatio * Database_Status[(Database_Exist[Varb0001] * 12) + 9] * MovementBaseRatio * MovementSideRatio * (Iabs(game.objects[Database_Exist[Varb0001]].data.frames[game.objects[Database_Exist[Varb0001]].frame1].hit_Uj % 10000000) * 0.00001));
-       }
-       if(Database_Input[(Database_Exist[Varb0001] * 7) + 3] > 1 && Database_Input[(Database_Exist[Varb0001] * 7) + 5] == 1)
-       {
-        if(Database_Input[(Database_Exist[Varb0001] * 7) + 4] == 1 && Database_Input[(Database_Exist[Varb0001] * 7) + 6] == 1)
-        ZVelUp(Database_Exist[Varb0001], -(game.objects[Database_Exist[Varb0001]].data.walking_speed * PrespectiveRatio * Database_Status[(Database_Exist[Varb0001] * 12) + 9] * MovementBaseRatio * (Iabs(game.objects[Database_Exist[Varb0001]].data.frames[game.objects[Database_Exist[Varb0001]].frame1].hit_Uj % 10000000) * 0.00001)));
-        if((Database_Input[(Database_Exist[Varb0001] * 7) + 4] > 1 && Database_Input[(Database_Exist[Varb0001] * 7) + 6] == 1) || (Database_Input[(Database_Exist[Varb0001] * 7) + 6] > 1 && Database_Input[(Database_Exist[Varb0001] * 7) + 4] == 1))
-        ZVelUp(Database_Exist[Varb0001], -(game.objects[Database_Exist[Varb0001]].data.walking_speed * PrespectiveRatio * Database_Status[(Database_Exist[Varb0001] * 12) + 9] * MovementBaseRatio * MovementSideRatio * (Iabs(game.objects[Database_Exist[Varb0001]].data.frames[game.objects[Database_Exist[Varb0001]].frame1].hit_Uj % 10000000) * 0.00001)));
-       }
-      break;
-      default: break;
-     }
-     if(game.objects[Database_Exist[Varb0001]].shake == 0)
-     {
-      if(HighLevelCalculation)
-      {
-       double Varb0012 = 0; double Varb0013 = 0; double Varb0014 = 0;
-       switch(game.objects[Database_Exist[Varb0001]].data.type)
-       {
-        case 0:
-         if(Database_ToGround[Database_Exist[Varb0001]] > 0)
-         {
-          Varb0012 = (Dabs(Database_Status[(Database_Exist[Varb0001] * 12) + 6]) / (AirDensitySpeed * (1 - (WeightEffectiveness / 100) + (game.objects[Database_Exist[Varb0001]].data.walking_speedz * (WeightEffectiveness / 100))))) * (DecreasionEffectiveness / 100) * ((Type0MXGravity * DecreasionRateRatio * 0.01) + DecreasionRateBase);
-          Varb0013 = (Dabs(Database_Status[(Database_Exist[Varb0001] * 12) + 7]) / (AirDensitySpeed * (1 - (WeightEffectiveness / 100) + (game.objects[Database_Exist[Varb0001]].data.walking_speedz * (WeightEffectiveness / 100))))) * (DecreasionEffectiveness / 100) * ((Type0MYGravity * DecreasionRateRatio * 0.01) + DecreasionRateBase);
-          Varb0014 = (Dabs(Database_Status[(Database_Exist[Varb0001] * 12) + 8]) / (AirDensitySpeed * (1 - (WeightEffectiveness / 100) + (game.objects[Database_Exist[Varb0001]].data.walking_speedz * (WeightEffectiveness / 100))) * PrespectiveRatio)) * (DecreasionEffectiveness / 100) * ((Type0MXGravity * PrespectiveRatio * DecreasionRateRatio * 0.01) + (DecreasionRateBase * PrespectiveRatio));
-         } else
-         {
-          if(Database_ToGround[Database_Exist[Varb0001]] == 0)
-          {
-           Varb0012 = (Dabs(Database_Status[(Database_Exist[Varb0001] * 12) + 6]) / (AirDensitySpeed * (1 - (WeightEffectiveness / 100) + (game.objects[Database_Exist[Varb0001]].data.walking_speedz * (WeightEffectiveness / 100))))) * (DecreasionEffectiveness / 100) * ((Type0GXGravity * DecreasionRateRatio * 0.01) + DecreasionRateBase);
-           Varb0013 = (Dabs(Database_Status[(Database_Exist[Varb0001] * 12) + 7]) / (AirDensitySpeed * (1 - (WeightEffectiveness / 100) + (game.objects[Database_Exist[Varb0001]].data.walking_speedz * (WeightEffectiveness / 100))))) * (DecreasionEffectiveness / 100) * ((Type0MYGravity * DecreasionRateRatio * 0.01) + DecreasionRateBase);
-           Varb0014 = (Dabs(Database_Status[(Database_Exist[Varb0001] * 12) + 8]) / (AirDensitySpeed * (1 - (WeightEffectiveness / 100) + (game.objects[Database_Exist[Varb0001]].data.walking_speedz * (WeightEffectiveness / 100))) * PrespectiveRatio)) * (DecreasionEffectiveness / 100) * ((Type0GXGravity * PrespectiveRatio * DecreasionRateRatio * 0.01) + (DecreasionRateBase * PrespectiveRatio));
-          }
-         }
-         if(Database_Status[(Database_Exist[Varb0001] * 12) + 6] > 0)if(Database_Status[(Database_Exist[Varb0001] * 12) + 6] - Varb0012 < 0){Database_Status[(Database_Exist[Varb0001] * 12) + 6] = 0;} else {Database_Status[(Database_Exist[Varb0001] * 12) + 6] -= Varb0012;}
-         if(Database_Status[(Database_Exist[Varb0001] * 12) + 6] < 0)if(Database_Status[(Database_Exist[Varb0001] * 12) + 6] + Varb0012 > 0){Database_Status[(Database_Exist[Varb0001] * 12) + 6] = 0;} else {Database_Status[(Database_Exist[Varb0001] * 12) + 6] += Varb0012;}
-         if(Database_Status[(Database_Exist[Varb0001] * 12) + 7] > 0)if(Database_Status[(Database_Exist[Varb0001] * 12) + 7] - Varb0013 < 0){Database_Status[(Database_Exist[Varb0001] * 12) + 7] = 0;} else {Database_Status[(Database_Exist[Varb0001] * 12) + 7] -= Varb0013;}
-         if(Database_Status[(Database_Exist[Varb0001] * 12) + 7] < 0)if(Database_Status[(Database_Exist[Varb0001] * 12) + 7] + Varb0013 > 0){Database_Status[(Database_Exist[Varb0001] * 12) + 7] = 0;} else {Database_Status[(Database_Exist[Varb0001] * 12) + 7] += Varb0013;}
-         if(Database_Status[(Database_Exist[Varb0001] * 12) + 8] > 0)if(Database_Status[(Database_Exist[Varb0001] * 12) + 8] - Varb0014 < 0){Database_Status[(Database_Exist[Varb0001] * 12) + 8] = 0;} else {Database_Status[(Database_Exist[Varb0001] * 12) + 8] -= Varb0014;}
-         if(Database_Status[(Database_Exist[Varb0001] * 12) + 8] < 0)if(Database_Status[(Database_Exist[Varb0001] * 12) + 8] + Varb0014 > 0){Database_Status[(Database_Exist[Varb0001] * 12) + 8] = 0;} else {Database_Status[(Database_Exist[Varb0001] * 12) + 8] += Varb0014;}
-        break;
-        default: break;
-       }
-      }
-      Database_Status[(Database_Exist[Varb0001] * 12) + 3] += Database_Status[(Database_Exist[Varb0001] * 12) + 6];
-      Database_Status[(Database_Exist[Varb0001] * 12) + 4] += Database_Status[(Database_Exist[Varb0001] * 12) + 7];
-      Database_Status[(Database_Exist[Varb0001] * 12) + 5] += Database_Status[(Database_Exist[Varb0001] * 12) + 8];
-      switch(game.objects[Database_Exist[Varb0001]].data.type)
-      {
-       case 0:
-        if(Database_ToGround[Database_Exist[Varb0001]] > 0)
-        {
-         if(Database_Status[(Database_Exist[Varb0001] * 12) + 6] > 0) if(Database_Status[(Database_Exist[Varb0001] * 12) + 6] - Type0MXGravity < 0){Database_Status[(Database_Exist[Varb0001] * 12) + 6] = 0;} else {Database_Status[(Database_Exist[Varb0001] * 12) + 6] -= Type0MXGravity;}
-         if(Database_Status[(Database_Exist[Varb0001] * 12) + 6] < 0) if(Database_Status[(Database_Exist[Varb0001] * 12) + 6] + Type0MXGravity > 0){Database_Status[(Database_Exist[Varb0001] * 12) + 6] = 0;} else {Database_Status[(Database_Exist[Varb0001] * 12) + 6] += Type0MXGravity;}
-         Database_Status[(Database_Exist[Varb0001] * 12) + 7] += Type0MYGravity;
-         if(Database_Status[(Database_Exist[Varb0001] * 12) + 8] > 0) if(Database_Status[(Database_Exist[Varb0001] * 12) + 8] - (Type0MXGravity * PrespectiveRatio) < 0){Database_Status[(Database_Exist[Varb0001] * 12) + 8] = 0;} else {Database_Status[(Database_Exist[Varb0001] * 12) + 8] -= (Type0MXGravity * PrespectiveRatio);}
-         if(Database_Status[(Database_Exist[Varb0001] * 12) + 8] < 0) if(Database_Status[(Database_Exist[Varb0001] * 12) + 8] + (Type0MXGravity * PrespectiveRatio) > 0){Database_Status[(Database_Exist[Varb0001] * 12) + 8] = 0;} else {Database_Status[(Database_Exist[Varb0001] * 12) + 8] += (Type0MXGravity * PrespectiveRatio);}
-        } else
-        {
-         if(Database_ToGround[Database_Exist[Varb0001]] == 0)
-         {
-          if(Database_Status[(Database_Exist[Varb0001] * 12) + 6] > 0) if(Database_Status[(Database_Exist[Varb0001] * 12) + 6] - Type0GXGravity < 0){Database_Status[(Database_Exist[Varb0001] * 12) + 6] = 0;} else {Database_Status[(Database_Exist[Varb0001] * 12) + 6] -= Type0GXGravity;}
-          if(Database_Status[(Database_Exist[Varb0001] * 12) + 6] < 0) if(Database_Status[(Database_Exist[Varb0001] * 12) + 6] + Type0GXGravity > 0){Database_Status[(Database_Exist[Varb0001] * 12) + 6] = 0;} else {Database_Status[(Database_Exist[Varb0001] * 12) + 6] += Type0GXGravity;}
-          if(Database_Status[(Database_Exist[Varb0001] * 12) + 8] > 0) if(Database_Status[(Database_Exist[Varb0001] * 12) + 8] - (Type0GXGravity * PrespectiveRatio) < 0){Database_Status[(Database_Exist[Varb0001] * 12) + 8] = 0;} else {Database_Status[(Database_Exist[Varb0001] * 12) + 8] -= (Type0GXGravity * PrespectiveRatio);}
-          if(Database_Status[(Database_Exist[Varb0001] * 12) + 8] < 0) if(Database_Status[(Database_Exist[Varb0001] * 12) + 8] + (Type0GXGravity * PrespectiveRatio) > 0){Database_Status[(Database_Exist[Varb0001] * 12) + 8] = 0;} else {Database_Status[(Database_Exist[Varb0001] * 12) + 8] += (Type0GXGravity * PrespectiveRatio);}
-         }
-        }
-       break;
-       default: break;
-      }
-     }
-    }
-   //-//
-
-   //Layer Offside & Layer Deployment
-    int Varb0006 = 0;
-    for(Varb0001 = 0; Varb0001 < 40; ++Varb0001) if(game.files.get_backgrounds()[background].transparency[Varb0001] != 999999999){Varb0006 += 1;} else {break;}
-    array < int > Varb0007 = 30; int Varb0008 = 0; array < int > Varb0009 = 30; int Varb0010 = 0;
-    for(Varb0001 = Varb0006 + 2; Varb0001 < game.files.get_backgrounds()[background].layer_count + Varb0006; ++Varb0001)
-    if(game.files.get_backgrounds()[background].transparency[Varb0001] > 1)
-    {
-     if(game.files.get_backgrounds()[background].transparency[Varb0001] >= 100000000 && game.files.get_backgrounds()[background].transparency[Varb0001] <= 499999999)
-     {Varb0007[Varb0008] = Varb0001; Varb0008 += 1;}
-     if(game.files.get_backgrounds()[background].transparency[Varb0001] >= 500000000 && game.files.get_backgrounds()[background].transparency[Varb0001] <= 899999999)
-     {Varb0009[Varb0010] = Varb0001; Varb0010 += 1;}
-    }
-    for(Varb0001 = 0; Varb0001 < NumberOfExist; ++Varb0001)
-    {
-
-     //ToGround Deployment
-      int Varb0016 = 0; int Varb0017 = 0;
-      for(int Varb0015 = 0; Varb0015 < Varb0008; ++Varb0015)
-      {
-       switch(Iabs(game.files.get_backgrounds()[background].transparency[Varb0007[Varb0015]] - (game.files.get_backgrounds()[background].transparency[Varb0007[Varb0015]] % 100000000)))
-       {
-        case 100000000:
-         Varb0017 = (((game.files.get_backgrounds()[background].transparency[Varb0007[Varb0015]] % 100000000) - (game.files.get_backgrounds()[background].transparency[Varb0007[Varb0015]] % 10000)) / 10000) + (game.files.get_backgrounds()[background].transparency[Varb0007[Varb0015]] % 10000);
-         if(Varb0017 >= Varb0016 && Varb0011[(Database_Exist[Varb0001] * 3) + 1] <= Varb0017)
-         if(Varb0011[(Database_Exist[Varb0001] * 3)] >= ((game.files.get_backgrounds()[background].layer_x[Varb0007[Varb0015]] % 100000000) - (game.files.get_backgrounds()[background].layer_x[Varb0007[Varb0015]] % 10000)) / 10000 && Varb0011[(Database_Exist[Varb0001] * 3)] <= (((game.files.get_backgrounds()[background].layer_x[Varb0007[Varb0015]] % 100000000) - (game.files.get_backgrounds()[background].layer_x[Varb0007[Varb0015]] % 10000)) / 10000) + (game.files.get_backgrounds()[background].layer_x[Varb0007[Varb0015]] % 10000))
-         if(Varb0011[(Database_Exist[Varb0001] * 3) + 2] >= ((game.files.get_backgrounds()[background].layer_y[Varb0007[Varb0015]] % 100000000) - (game.files.get_backgrounds()[background].layer_y[Varb0007[Varb0015]] % 10000)) / 10000 && Varb0011[(Database_Exist[Varb0001] * 3) + 2] <= (((game.files.get_backgrounds()[background].layer_y[Varb0007[Varb0015]] % 100000000) - (game.files.get_backgrounds()[background].layer_y[Varb0007[Varb0015]] % 10000)) / 10000) + (game.files.get_backgrounds()[background].layer_y[Varb0007[Varb0015]] % 10000))
-         {
-          Varb0016 = Varb0017; Database_ToGround[Database_Exist[Varb0001]] = -(Database_Status[(Database_Exist[Varb0001] * 12) + 4] + Cnvrt_I_D(Varb0017));
-         }
-        break;
-       }
-      }
-      if(Varb0016 == 0) Database_ToGround[Database_Exist[Varb0001]] = -(Database_Status[(Database_Exist[Varb0001] * 12) + 4] + 0);
-     //-//
-     
-     //Landing
-      double Varb0019 = 0; Varb0016 = StateEjection2(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].frame1, 5);
-      switch((Varb0016 - (Varb0016 % 100000000)))
-      {
-       case 300000000: break;            
-       case 200000000: break;  
-       default: Database_Bounce[Database_Exist[Varb0001]] = false; break;
-      }
-      if(Database_ToGround[Database_Exist[Varb0001]] < 0)
-      {
-       if(Dabs(Database_ToGround[Database_Exist[Varb0001]]) < Dabs(Database_Status[(Database_Exist[Varb0001] * 12) + 4] - Varb0011[(Database_Exist[Varb0001] * 3) + 1]))
-       {
-        Varb0019 = (Database_Status[(Database_Exist[Varb0001] * 12) + 3] - Varb0011[(Database_Exist[Varb0001] * 3)]) * LandingSpeedReduction * (Dabs(Database_ToGround[Database_Exist[Varb0001]]) / Dabs(Database_Status[(Database_Exist[Varb0001] * 12) + 4] - Varb0011[(Database_Exist[Varb0001] * 3) + 1]));
-        Database_Status[(Database_Exist[Varb0001] * 12) + 3] -= Varb0019;
-        Database_Status[(Database_Exist[Varb0001] * 12) + 6] -= Database_Status[(Database_Exist[Varb0001] * 12) + 6] * LandingSpeedReduction;
-        Varb0019 = (Database_Status[(Database_Exist[Varb0001] * 12) + 5] - Varb0011[(Database_Exist[Varb0001] * 3) + 2]) * LandingSpeedReduction * (Dabs(Database_ToGround[Database_Exist[Varb0001]]) / Dabs(Database_Status[(Database_Exist[Varb0001] * 12) + 4] - Varb0011[(Database_Exist[Varb0001] * 3) + 1]));
-        Database_Status[(Database_Exist[Varb0001] * 12) + 5] -= Varb0019;
-        Database_Status[(Database_Exist[Varb0001] * 12) + 8] -= Database_Status[(Database_Exist[Varb0001] * 12) + 8] * LandingSpeedReduction;
-       } else
-       {
-        Varb0019 = (Database_Status[(Database_Exist[Varb0001] * 12) + 3] - Varb0011[(Database_Exist[Varb0001] * 3)]) * LandingSpeedReduction;
-        Database_Status[(Database_Exist[Varb0001] * 12) + 3] -= Varb0019;
-        Database_Status[(Database_Exist[Varb0001] * 12) + 6] -= Database_Status[(Database_Exist[Varb0001] * 12) + 6] * LandingSpeedReduction;
-        Varb0019 = (Database_Status[(Database_Exist[Varb0001] * 12) + 5] - Varb0011[(Database_Exist[Varb0001] * 3) + 2]) * LandingSpeedReduction;
-        Database_Status[(Database_Exist[Varb0001] * 12) + 5] -= Varb0019;
-        Database_Status[(Database_Exist[Varb0001] * 12) + 8] -= Database_Status[(Database_Exist[Varb0001] * 12) + 8] * LandingSpeedReduction;
-       }
-       if(Varb0016 % 100000000 == 0)
-       {
-        switch((Varb0016 - (Varb0016 % 10000000)))
-        {
-         case 300000000:
-          if(Database_Status[(Database_Exist[Varb0001] * 12) + 7] < VelocityForHighFall)
-          {
-           if(Database_Status[(Database_Exist[Varb0001] * 12) + 7] < VelocityForFall)
-           {
-            Control_Frame1(Database_Exist[Varb0001], (StateEjection(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].frame1, 6) / 1000000) + 3);
-            Database_Status[(Database_Exist[Varb0001] * 12) + 4] += Database_ToGround[Database_Exist[Varb0001]];
-            Database_Status[(Database_Exist[Varb0001] * 12) + 7] = 0;
-           } else
-           {
-            Control_Frame1(Database_Exist[Varb0001], (StateEjection(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].frame1, 6) / 1000000) + 28);
-            Database_Status[(Database_Exist[Varb0001] * 12) + 4] += Database_ToGround[Database_Exist[Varb0001]];
-            Database_Status[(Database_Exist[Varb0001] * 12) + 7] = -(Database_Status[(Database_Exist[Varb0001] * 12) + 7] * FallRebound);
-           }
-          } else
-          {
-           Control_Frame1(Database_Exist[Varb0001], (StateEjection(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].frame1, 6) / 1000000) + 33);
-           Database_Status[(Database_Exist[Varb0001] * 12) + 4] += Database_ToGround[Database_Exist[Varb0001]];
-           if(Database_Bounce[Database_Exist[Varb0001]])
-           {
-            if(HighFallRebound > BounceRebound)
-            {
-             if(HighFallReboundVel > BounceReboundVel)
-             {
-              if(Database_Status[(Database_Exist[Varb0001] * 12) + 7] * HighFallRebound > HighFallReboundVel)
-              {
-               Database_Status[(Database_Exist[Varb0001] * 12) + 7] = -(Database_Status[(Database_Exist[Varb0001] * 12) + 7] * HighFallRebound);
-              } else
-              {
-               Database_Status[(Database_Exist[Varb0001] * 12) + 7] = -HighFallReboundVel;
-              }
-             } else
-             {
-              if(Database_Status[(Database_Exist[Varb0001] * 12) + 7] * HighFallRebound > BounceReboundVel)
-              {
-               Database_Status[(Database_Exist[Varb0001] * 12) + 7] = -(Database_Status[(Database_Exist[Varb0001] * 12) + 7] * HighFallRebound);
-              } else
-              {
-               Database_Status[(Database_Exist[Varb0001] * 12) + 7] = -BounceReboundVel;
-              }
-             }
-            } else
-            {
-             if(HighFallReboundVel > BounceReboundVel)
-             {
-              if(Database_Status[(Database_Exist[Varb0001] * 12) + 7] * BounceRebound > HighFallReboundVel)
-              {
-               Database_Status[(Database_Exist[Varb0001] * 12) + 7] = -(Database_Status[(Database_Exist[Varb0001] * 12) + 7] * BounceRebound);
-              } else
-              {
-               Database_Status[(Database_Exist[Varb0001] * 12) + 7] = -HighFallReboundVel;
-              }
-             } else
-             {
-              if(Database_Status[(Database_Exist[Varb0001] * 12) + 7] * BounceRebound > BounceReboundVel)
-              {
-               Database_Status[(Database_Exist[Varb0001] * 12) + 7] = -(Database_Status[(Database_Exist[Varb0001] * 12) + 7] * BounceRebound);
-              } else
-              {
-               Database_Status[(Database_Exist[Varb0001] * 12) + 7] = -BounceReboundVel;
-              }
-             }
-            }
-           } else
-           {
-            if(Database_Status[(Database_Exist[Varb0001] * 12) + 7] * HighFallRebound > HighFallReboundVel)
-            {
-             Database_Status[(Database_Exist[Varb0001] * 12) + 7] = -(Database_Status[(Database_Exist[Varb0001] * 12) + 7] * HighFallRebound);
-            } else
-            {
-             Database_Status[(Database_Exist[Varb0001] * 12) + 7] = -HighFallReboundVel;
-            }
-           }
-           DamageCalculaion(Database_Exist[Varb0001], Cnvrt_F_I(HighFallDamage - (HighFallDamage % 1)), Cnvrt_F_I(HighFallDamage % 1) * 10, -1);
-          }
-         break;
-         case 200000000:
-          if(Database_Status[(Database_Exist[Varb0001] * 12) + 7] < VelocityForHighFall)
-          {
-           if(Database_Status[(Database_Exist[Varb0001] * 12) + 7] < VelocityForFall)
-           {
-            Control_Frame1(Database_Exist[Varb0001], (StateEjection(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].frame1, 6) / 1000000) + 3);
-            Database_Status[(Database_Exist[Varb0001] * 12) + 4] += Database_ToGround[Database_Exist[Varb0001]];
-            Database_Status[(Database_Exist[Varb0001] * 12) + 7] = 0;
-           } else
-           {
-            Control_Frame1(Database_Exist[Varb0001], (StateEjection(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].frame1, 6) / 1000000) + 22);
-            Database_Status[(Database_Exist[Varb0001] * 12) + 4] += Database_ToGround[Database_Exist[Varb0001]];
-            Database_Status[(Database_Exist[Varb0001] * 12) + 7] = -(Database_Status[(Database_Exist[Varb0001] * 12) + 7] * FallRebound);
-           }
-          } else
-          {
-           Control_Frame1(Database_Exist[Varb0001], (StateEjection(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].frame1, 6) / 1000000) + 32);
-           Database_Status[(Database_Exist[Varb0001] * 12) + 4] += Database_ToGround[Database_Exist[Varb0001]];
-           if(Database_Bounce[Database_Exist[Varb0001]])
-           {
-            if(HighFallRebound > BounceRebound)
-            {
-             if(HighFallReboundVel > BounceReboundVel)
-             {
-              if(Database_Status[(Database_Exist[Varb0001] * 12) + 7] * HighFallRebound > HighFallReboundVel)
-              {
-               Database_Status[(Database_Exist[Varb0001] * 12) + 7] = -(Database_Status[(Database_Exist[Varb0001] * 12) + 7] * HighFallRebound);
-              } else
-              {
-               Database_Status[(Database_Exist[Varb0001] * 12) + 7] = -HighFallReboundVel;
-              }
-             } else
-             {
-              if(Database_Status[(Database_Exist[Varb0001] * 12) + 7] * HighFallRebound > BounceReboundVel)
-              {
-               Database_Status[(Database_Exist[Varb0001] * 12) + 7] = -(Database_Status[(Database_Exist[Varb0001] * 12) + 7] * HighFallRebound);
-              } else
-              {
-               Database_Status[(Database_Exist[Varb0001] * 12) + 7] = -BounceReboundVel;
-              }
-             }
-            } else
-            {
-             if(HighFallReboundVel > BounceReboundVel)
-             {
-              if(Database_Status[(Database_Exist[Varb0001] * 12) + 7] * BounceRebound > HighFallReboundVel)
-              {
-               Database_Status[(Database_Exist[Varb0001] * 12) + 7] = -(Database_Status[(Database_Exist[Varb0001] * 12) + 7] * BounceRebound);
-              } else
-              {
-               Database_Status[(Database_Exist[Varb0001] * 12) + 7] = -HighFallReboundVel;
-              }
-             } else
-             {
-              if(Database_Status[(Database_Exist[Varb0001] * 12) + 7] * BounceRebound > BounceReboundVel)
-              {
-               Database_Status[(Database_Exist[Varb0001] * 12) + 7] = -(Database_Status[(Database_Exist[Varb0001] * 12) + 7] * BounceRebound);
-              } else
-              {
-               Database_Status[(Database_Exist[Varb0001] * 12) + 7] = -BounceReboundVel;
-              }
-             }
-            }
-           } else
-           {
-            if(Database_Status[(Database_Exist[Varb0001] * 12) + 7] * HighFallRebound > HighFallReboundVel)
-            {
-             Database_Status[(Database_Exist[Varb0001] * 12) + 7] = -(Database_Status[(Database_Exist[Varb0001] * 12) + 7] * HighFallRebound);
-            } else
-            {
-             Database_Status[(Database_Exist[Varb0001] * 12) + 7] = -HighFallReboundVel;
-            }
-           }
-           DamageCalculaion(Database_Exist[Varb0001], Cnvrt_F_I(HighFallDamage - (HighFallDamage % 1)), Cnvrt_F_I(HighFallDamage % 1) * 10, -1);
-          }
-         break;
-         case 100000000:
-          if(Database_Status[(Database_Exist[Varb0001] * 12) + 7] < VelocityForHighFall)
-          {
-           Database_Status[(Database_Exist[Varb0001] * 12) + 4] += Database_ToGround[Database_Exist[Varb0001]];
-           Database_Status[(Database_Exist[Varb0001] * 12) + 7] = 0;
-          } else
-          {
-           Database_Status[(Database_Exist[Varb0001] * 12) + 4] += Database_ToGround[Database_Exist[Varb0001]];
-           Database_Status[(Database_Exist[Varb0001] * 12) + 7] = -(Database_Status[(Database_Exist[Varb0001] * 12) + 7] * HighFallRebound);
-           DamageCalculaion(Database_Exist[Varb0001], Cnvrt_F_I(HighFallDamage - (HighFallDamage % 1)), Cnvrt_F_I(HighFallDamage % 1) * 10, -1);
-          }
-         default:
-          if(Database_Status[(Database_Exist[Varb0001] * 12) + 7] < VelocityForHighFall)
-          {
-           Control_Frame1(Database_Exist[Varb0001], (StateEjection(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].frame1, 6) / 1000000) + 3);
-           Database_Status[(Database_Exist[Varb0001] * 12) + 4] += Database_ToGround[Database_Exist[Varb0001]];
-           Database_Status[(Database_Exist[Varb0001] * 12) + 7] = 0;
-          } else
-          {
-           Control_Frame1(Database_Exist[Varb0001], (StateEjection(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].frame1, 6) / 1000000) + 32);
-           Database_Status[(Database_Exist[Varb0001] * 12) + 4] += Database_ToGround[Database_Exist[Varb0001]];
-           Database_Status[(Database_Exist[Varb0001] * 12) + 7] = -(Database_Status[(Database_Exist[Varb0001] * 12) + 7] * HighFallRebound);
-           DamageCalculaion(Database_Exist[Varb0001], Cnvrt_F_I(HighFallDamage - (HighFallDamage % 1)), Cnvrt_F_I(HighFallDamage % 1) * 10, -1);
-          }
-         break;
-        }
-       } else
-       {
-        switch((Varb0016 - (Varb0016 % 10000000)))
-        {
-         case 300000000:
-          if(Database_Status[(Database_Exist[Varb0001] * 12) + 7] < VelocityForHighFall)
-          {
-           if(Database_Status[(Database_Exist[Varb0001] * 12) + 7] < VelocityForFall)
-           {
-            Control_Frame1(Database_Exist[Varb0001], (Varb0016 % 100000000) / 100000);
-            Database_Status[(Database_Exist[Varb0001] * 12) + 4] += Database_ToGround[Database_Exist[Varb0001]];
-            Database_Status[(Database_Exist[Varb0001] * 12) + 7] = 0;
-           } else
-           {
-            Control_Frame1(Database_Exist[Varb0001], (StateEjection(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].frame1, 6) / 1000000) + 28);
-            Database_Status[(Database_Exist[Varb0001] * 12) + 4] += Database_ToGround[Database_Exist[Varb0001]];
-            Database_Status[(Database_Exist[Varb0001] * 12) + 7] = -(Database_Status[(Database_Exist[Varb0001] * 12) + 7] * FallRebound);
-           }
-          } else
-          {
-           Control_Frame1(Database_Exist[Varb0001], (StateEjection(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].frame1, 6) / 1000000) + 33);
-           Database_Status[(Database_Exist[Varb0001] * 12) + 4] += Database_ToGround[Database_Exist[Varb0001]];
-           if(Database_Bounce[Database_Exist[Varb0001]])
-           {
-            if(HighFallRebound > BounceRebound)
-            {
-             if(HighFallReboundVel > BounceReboundVel)
-             {
-              if(Database_Status[(Database_Exist[Varb0001] * 12) + 7] * HighFallRebound > HighFallReboundVel)
-              {
-               Database_Status[(Database_Exist[Varb0001] * 12) + 7] = -(Database_Status[(Database_Exist[Varb0001] * 12) + 7] * HighFallRebound);
-              } else
-              {
-               Database_Status[(Database_Exist[Varb0001] * 12) + 7] = -HighFallReboundVel;
-              }
-             } else
-             {
-              if(Database_Status[(Database_Exist[Varb0001] * 12) + 7] * HighFallRebound > BounceReboundVel)
-              {
-               Database_Status[(Database_Exist[Varb0001] * 12) + 7] = -(Database_Status[(Database_Exist[Varb0001] * 12) + 7] * HighFallRebound);
-              } else
-              {
-               Database_Status[(Database_Exist[Varb0001] * 12) + 7] = -BounceReboundVel;
-              }
-             }
-            } else
-            {
-             if(HighFallReboundVel > BounceReboundVel)
-             {
-              if(Database_Status[(Database_Exist[Varb0001] * 12) + 7] * BounceRebound > HighFallReboundVel)
-              {
-               Database_Status[(Database_Exist[Varb0001] * 12) + 7] = -(Database_Status[(Database_Exist[Varb0001] * 12) + 7] * BounceRebound);
-              } else
-              {
-               Database_Status[(Database_Exist[Varb0001] * 12) + 7] = -HighFallReboundVel;
-              }
-             } else
-             {
-              if(Database_Status[(Database_Exist[Varb0001] * 12) + 7] * BounceRebound > BounceReboundVel)
-              {
-               Database_Status[(Database_Exist[Varb0001] * 12) + 7] = -(Database_Status[(Database_Exist[Varb0001] * 12) + 7] * BounceRebound);
-              } else
-              {
-               Database_Status[(Database_Exist[Varb0001] * 12) + 7] = -BounceReboundVel;
-              }
-             }
-            }
-           } else
-           {
-            if(Database_Status[(Database_Exist[Varb0001] * 12) + 7] * HighFallRebound > HighFallReboundVel)
-            {
-             Database_Status[(Database_Exist[Varb0001] * 12) + 7] = -(Database_Status[(Database_Exist[Varb0001] * 12) + 7] * HighFallRebound);
-            } else
-            {
-             Database_Status[(Database_Exist[Varb0001] * 12) + 7] = -HighFallReboundVel;
-            }
-           }
-           DamageCalculaion(Database_Exist[Varb0001], Cnvrt_F_I(HighFallDamage - (HighFallDamage % 1)), Cnvrt_F_I(HighFallDamage % 1) * 10, -1);
-          }
-         break;
-         case 200000000:
-          if(Database_Status[(Database_Exist[Varb0001] * 12) + 7] < VelocityForHighFall)
-          {
-           if(Database_Status[(Database_Exist[Varb0001] * 12) + 7] < VelocityForFall)
-           {
-            Control_Frame1(Database_Exist[Varb0001], (Varb0016 % 100000000) / 100000);
-            Database_Status[(Database_Exist[Varb0001] * 12) + 4] += Database_ToGround[Database_Exist[Varb0001]];
-            Database_Status[(Database_Exist[Varb0001] * 12) + 7] = 0;
-           } else
-           {
-            Control_Frame1(Database_Exist[Varb0001], (StateEjection(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].frame1, 6) / 1000000) + 22);
-            Database_Status[(Database_Exist[Varb0001] * 12) + 4] += Database_ToGround[Database_Exist[Varb0001]];
-            Database_Status[(Database_Exist[Varb0001] * 12) + 7] = -(Database_Status[(Database_Exist[Varb0001] * 12) + 7] * FallRebound);
-           }
-          } else
-          {
-           Control_Frame1(Database_Exist[Varb0001], (StateEjection(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].frame1, 6) / 1000000) + 32);
-           Database_Status[(Database_Exist[Varb0001] * 12) + 4] += Database_ToGround[Database_Exist[Varb0001]];
-           if(Database_Bounce[Database_Exist[Varb0001]])
-           {
-            if(HighFallRebound > BounceRebound)
-            {
-             if(HighFallReboundVel > BounceReboundVel)
-             {
-              if(Database_Status[(Database_Exist[Varb0001] * 12) + 7] * HighFallRebound > HighFallReboundVel)
-              {
-               Database_Status[(Database_Exist[Varb0001] * 12) + 7] = -(Database_Status[(Database_Exist[Varb0001] * 12) + 7] * HighFallRebound);
-              } else
-              {
-               Database_Status[(Database_Exist[Varb0001] * 12) + 7] = -HighFallReboundVel;
-              }
-             } else
-             {
-              if(Database_Status[(Database_Exist[Varb0001] * 12) + 7] * HighFallRebound > BounceReboundVel)
-              {
-               Database_Status[(Database_Exist[Varb0001] * 12) + 7] = -(Database_Status[(Database_Exist[Varb0001] * 12) + 7] * HighFallRebound);
-              } else
-              {
-               Database_Status[(Database_Exist[Varb0001] * 12) + 7] = -BounceReboundVel;
-              }
-             }
-            } else
-            {
-             if(HighFallReboundVel > BounceReboundVel)
-             {
-              if(Database_Status[(Database_Exist[Varb0001] * 12) + 7] * BounceRebound > HighFallReboundVel)
-              {
-               Database_Status[(Database_Exist[Varb0001] * 12) + 7] = -(Database_Status[(Database_Exist[Varb0001] * 12) + 7] * BounceRebound);
-              } else
-              {
-               Database_Status[(Database_Exist[Varb0001] * 12) + 7] = -HighFallReboundVel;
-              }
-             } else
-             {
-              if(Database_Status[(Database_Exist[Varb0001] * 12) + 7] * BounceRebound > BounceReboundVel)
-              {
-               Database_Status[(Database_Exist[Varb0001] * 12) + 7] = -(Database_Status[(Database_Exist[Varb0001] * 12) + 7] * BounceRebound);
-              } else
-              {
-               Database_Status[(Database_Exist[Varb0001] * 12) + 7] = -BounceReboundVel;
-              }
-             }
-            }
-           } else
-           {
-            if(Database_Status[(Database_Exist[Varb0001] * 12) + 7] * HighFallRebound > HighFallReboundVel)
-            {
-             Database_Status[(Database_Exist[Varb0001] * 12) + 7] = -(Database_Status[(Database_Exist[Varb0001] * 12) + 7] * HighFallRebound);
-            } else
-            {
-             Database_Status[(Database_Exist[Varb0001] * 12) + 7] = -HighFallReboundVel;
-            }
-           }
-           DamageCalculaion(Database_Exist[Varb0001], Cnvrt_F_I(HighFallDamage - (HighFallDamage % 1)), Cnvrt_F_I(HighFallDamage % 1) * 10, -1);
-          }
-         break;
-         case 100000000:
-          if(Database_Status[(Database_Exist[Varb0001] * 12) + 7] < VelocityForHighFall)
-          {
-           Database_Status[(Database_Exist[Varb0001] * 12) + 4] += Database_ToGround[Database_Exist[Varb0001]];
-           Database_Status[(Database_Exist[Varb0001] * 12) + 7] = 0;
-          } else
-          {
-           Database_Status[(Database_Exist[Varb0001] * 12) + 4] += Database_ToGround[Database_Exist[Varb0001]];
-           Database_Status[(Database_Exist[Varb0001] * 12) + 7] = -(Database_Status[(Database_Exist[Varb0001] * 12) + 7] * HighFallRebound);
-           DamageCalculaion(Database_Exist[Varb0001], Cnvrt_F_I(HighFallDamage - (HighFallDamage % 1)), Cnvrt_F_I(HighFallDamage % 1) * 10, -1);
-          }
-         default:
-          if(Database_Status[(Database_Exist[Varb0001] * 12) + 7] < VelocityForHighFall)
-          {
-           Control_Frame1(Database_Exist[Varb0001], (Varb0016 % 100000000) / 100000);
-           Database_Status[(Database_Exist[Varb0001] * 12) + 4] += Database_ToGround[Database_Exist[Varb0001]];
-           Database_Status[(Database_Exist[Varb0001] * 12) + 7] = 0;
-          } else
-          {
-           Control_Frame1(Database_Exist[Varb0001], (StateEjection(Database_Exist[Varb0001], game.objects[Database_Exist[Varb0001]].frame1, 6) / 1000000) + 32);
-           Database_Status[(Database_Exist[Varb0001] * 12) + 4] += Database_ToGround[Database_Exist[Varb0001]];
-           Database_Status[(Database_Exist[Varb0001] * 12) + 7] = -(Database_Status[(Database_Exist[Varb0001] * 12) + 7] * HighFallRebound);
-           DamageCalculaion(Database_Exist[Varb0001], Cnvrt_F_I(HighFallDamage - (HighFallDamage % 1)), Cnvrt_F_I(HighFallDamage % 1) * 10, -1);
-          }
-         break;
-        }
-       }
-       Database_ToGround[Database_Exist[Varb0001]] = 0;
-      }
-     //-//
-    }
-   //-//
-
-   //Finalizer
-    for(Varb0001 = 0; Varb0001 < NumberOfExist; ++Varb0001)
-    {
-     Control_XR(Database_Exist[Varb0001], Rounding(Database_Status[(Database_Exist[Varb0001] * 12) + 3]));
-     Control_YR(Database_Exist[Varb0001], Rounding(Database_Status[(Database_Exist[Varb0001] * 12) + 4] - (Database_Status[(Database_Exist[Varb0001] * 12) + 4] + Database_ToGround[Database_Exist[Varb0001]])));
-     Control_ZR(Database_Exist[Varb0001], Rounding(Database_Status[(Database_Exist[Varb0001] * 12) + 5] + (Database_Status[(Database_Exist[Varb0001] * 12) + 4] + Database_ToGround[Database_Exist[Varb0001]])));
-     Control_VX(Database_Exist[Varb0001], 0);
-     Control_VY(Database_Exist[Varb0001], 0);
-     Control_VZ(Database_Exist[Varb0001], 0);
-     Control_PicNReserve(Database_Exist[Varb0001], 0, 0);
-     if(Database_HitLag[Database_Exist[Varb0001]] < 0)
-     {
-      Control_Shake(Database_Exist[Varb0001], (Database_HitLag[Database_Exist[Varb0001]] % 2) - 1);
-     } else
-     { 
-      if(Database_HitLag[Database_Exist[Varb0001]] > 0)
-      {
-       Control_Shake(Database_Exist[Varb0001], (Database_HitLag[Database_Exist[Varb0001]] % 2) + 1);
-      } else
-      {
-       Control_Shake(Database_Exist[Varb0001], 0);
-      }
-     }
-    }
-   //-//
-
-   //Console Menu
-    if(ConsoleDebug)
-    {
-     switch(ConsoleBuffer)
-     {
-      case 60: print("\n|==================== "); break;
-      case 80: print("\n|============================== "); break;
-      case 100: print("\n|======================================== "); break;
-      case 120: print("\n|================================================== "); break;
-     }
-     int Varb1000 = elapsed_time % 70; int Varb1001 = (ElapsedTime + 35) % 70;
-     if(Varb1000 == 0 || Varb1001 == 19){RandomSingleFont();} else {print("D");}
-     if(Varb1000 == 2 || Varb1001 == 33){RandomSingleFont();} else {print("e");}
-     if(Varb1000 == 1 || Varb1001 == 5){RandomSingleFont();} else {print("b");}
-     if(Varb1000 == 3 || Varb1001 == 11){RandomSingleFont();} else {print("u");}
-     if(Varb1000 == 4 || Varb1001 == 31){RandomSingleFont();} else {print("g");}
-     if(Varb1000 == 7 || Varb1001 == 12){RandomSingleFont();} else {print(" ");}
-     if(Varb1000 == 9 || Varb1001 == 13){RandomSingleFont();} else {print("b");}
-     if(Varb1000 == 2 || Varb1001 == 24){RandomSingleFont();} else {print("y");}
-     if(Varb1000 == 16 || Varb1001 == 27){RandomSingleFont();} else {print(" ");}
-     if(Varb1000 == 34 || Varb1001 == 16){RandomSingleFont();} else {print("M");}
-     if(Varb1000 == 6 || Varb1001 == 29){RandomSingleFont();} else {print("e");}
-     if(Varb1000 == 28 || Varb1001 == 14){RandomSingleFont();} else {print("s");}
-     if(Varb1000 == 25 || Varb1001 == 15){RandomSingleFont();} else {print("u");}
-     if(Varb1000 == 22 || Varb1001 == 16){RandomSingleFont();} else {print("j");}
-     if(Varb1000 == 19 || Varb1001 == 26){RandomSingleFont();} else {print("i");}
-     if(Varb1000 == 30 || Varb1001 == 8){RandomSingleFont();} else {print("n");}
-     switch(ConsoleBuffer)
-     {
-      case 60: print(" ====================|"); break;
-      case 80: print(" ==============================|"); break;
-      case 100: print(" ========================================|"); break;
-      case 120: print(" ==================================================|"); break;
-     }
-     printOut();
-    } else {printLogClear();}
-   //-//
-  }
- //-//
-
- //Functions
-  bool SpecialityCheck(int Varb01, double Varb02){if(game.objects[Varb01].data.walking_frame_rate == Cnvrt_D_I(Varb02)) return true; if(game.objects[Varb01].data.running_frame_rate == Cnvrt_D_I(Varb02)) return true; if(game.objects[Varb01].data.running_speed == Varb02) return true; if(game.objects[Varb01].data.running_speedz == Varb02) return true; if(game.objects[Varb01].data.heavy_walking_speed == Varb02) return true; if(game.objects[Varb01].data.heavy_walking_speedz == Varb02) return true; if(game.objects[Varb01].data.heavy_running_speed == Varb02) return true; if(game.objects[Varb01].data.heavy_running_speedz == Varb02) return true; if(game.objects[Varb01].data.jump_height == Varb02) return true; if(game.objects[Varb01].data.jump_distance == Varb02) return true; if(game.objects[Varb01].data.jump_distancez == Varb02) return true; if(game.objects[Varb01].data.dash_distance == Varb02) return true; if(game.objects[Varb01].data.dash_distancez == Varb02) return true; if(game.objects[Varb01].data.rowing_height == Varb02) return true; if(game.objects[Varb01].data.rowing_distance == Varb02) return true; return false;}
-  int RandomValue(int Varb01){return rand(Varb01 + 1);}
-  int Iabs(int Varb01){if(Varb01 < 0) return (-Varb01); return Varb01;}
-  float Fabs(float Varb01){if(Varb01 < 0) return (-Varb01); return Varb01;}
-  double Dabs(double Varb01){if(Varb01 < 0) return (-Varb01); return Varb01;}
-  double Rounding(double Varb01){return Cnvrt_Round(Varb01);}
-  int StateEjection(int Varb01, int Varb02, int Varb03)
-  {
-   if(game.objects[Varb01].data.frames[Varb02].state > 999999) return (game.objects[Varb01].data.frames[Varb02].state - (game.objects[Varb01].data.frames[Varb02].state % (10 ** Varb03)));
-   return (game.objects[Varb01].data.frames[Varb02].hit_ja - (game.objects[Varb01].data.frames[Varb02].hit_ja % (10 ** Varb03)));
-  }
-  int StateEjection2(int Varb01, int Varb02, int Varb03)
-  {
-   if(game.objects[Varb01].data.frames[Varb02].state > 999999) return (game.objects[Varb01].data.frames[Varb02].hit_ja - (game.objects[Varb01].data.frames[Varb02].hit_ja % (10 ** Varb03)));
-   return (game.objects[Varb01].data.frames[Varb02].cpoint.daction - (game.objects[Varb01].data.frames[Varb02].cpoint.daction % (10 ** Varb03)));
-  }
-  void DamageCalculaion(int Varb01, int Varb02, int Varb03, int Varb04)
-  {
-   double Varb05 = 1; double Varb06; double Varb07;
-   if(Varb04 != -1) Varb05 = Database_Status[(Varb04 * 12) + 10];
-   switch(Varb03)
-   {
-    case 0:
-     Varb06 = Cnvrt_I_D(Varb02) * Database_Status[(Varb01 * 12) + 11] * Varb05 * (DamageElement - (DamageElement % 1)) * 0.01;
-     Varb07 = Cnvrt_I_D(Varb02) * Database_Status[(Varb01 * 12) + 11] * Varb05 * (DamageElement % 1) * 10;
-     Database_Status[(Varb01 * 12)] -= Varb06; Database_Summary[(Varb01 * 10) + 4] += Varb06;
-     Database_Status[(Varb01 * 12) + 1] -= Varb07; Database_Summary[(Varb01 * 10) + 5] += Varb07;
-     if(Varb04 != -1){Database_Summary[(Varb04 * 10) + 2] += Varb06; Database_Summary[(Varb04 * 10) + 3] += Varb07;}
-    break;
-    default: break;
-   }
-  }
-  bool InputSetUp(int Varb01, int Varb02, int Varb03)
-  {
-   Varb02 = Iabs(Varb02);
-   if(!game.objects[Varb01].data.frames[Varb02].exists) return false;
-   switch(Varb03)
-   {
-    case 0:
-     Control_Frame1(Varb01, Varb02);
-    return true;
-    case 1:
-     Control_Frame1(Varb01, Varb02); if(game.objects[Varb01].facing){Control_Facing(Varb01, 0);} else {Control_Facing(Varb01, 1);}
-    return true;
-    case 7:
-     Control_Frame1(Varb01, Varb02); Database_Cast[Varb01] -= (Database_Cast[Varb01] % 1000000000000) - (Database_Cast[Varb01] % 100000000000);
-    return true;
-    case 8: Control_Frame1(Varb01, Varb02); if(game.objects[Varb01].facing){Control_Facing(Varb01, 0);} else {Control_Facing(Varb01, 1);} Database_Cast[Varb01] -= (Database_Cast[Varb01] % 1000000000000) - (Database_Cast[Varb01] % 100000000000); return true;
-    case 10:
-     if(game.objects[Varb01].facing){Database_LastVel[Varb01] = 7;} else {Database_LastVel[Varb01] = 3;}
-     Control_Frame1(Varb01, Varb02);
-    return true;
-    case 11:
-     switch(Database_LastVel[Varb01])
-     {
-      case 2:
-      case 3:
-      case 4:
-      case 6:
-      case 7:
-      case 8:
-       Control_Frame1(Varb01, Varb02);
-      return true;
-      default: if((Database_Input[(Varb01 * 7) + 4] > 1 && Database_Input[(Varb01 * 7) + 6] == 1) || (Database_Input[(Varb01 * 7) + 4] == 1 && Database_Input[(Varb01 * 7) + 6] > 1)){Control_Frame1(Varb01, Varb02); return true;} return false;
-     }
-    break;
-    default: break;
-   }
-   return false;
-  }
-  void XVelUp(int Varb01, double Varb02)
-  {
-   if(Varb02 > 0)
-   {
-    if(Database_Status[(Varb01 * 12) + 6] + Varb02 < Varb02)
-    {Database_Status[(Varb01 * 12) + 6] += Varb02;} else
-    {if(Database_Status[(Varb01 * 12) + 6] < Varb02) Database_Status[(Varb01 * 12) + 6] = Varb02;}
-   }
-   if(Varb02 < 0)
-   {
-    if(Database_Status[(Varb01 * 12) + 6] + Varb02 > Varb02)
-    {Database_Status[(Varb01 * 12) + 6] += Varb02;} else
-    {if(Database_Status[(Varb01 * 12) + 6] > Varb02) Database_Status[(Varb01 * 12) + 6] = Varb02;}
-   }
-  }
-  void YVelUp(int Varb01, double Varb02)
-  {
-   if(Varb02 > 0)
-   {
-    if(Database_Status[(Varb01 * 12) + 7] + Varb02 < Varb02)
-    {Database_Status[(Varb01 * 12) + 7] += Varb02;} else
-    {if(Database_Status[(Varb01 * 12) + 7] < Varb02) Database_Status[(Varb01 * 12) + 7] = Varb02;}
-   }
-   if(Varb02 < 0)
-   {
-    if(Database_Status[(Varb01 * 12) + 7] + Varb02 > Varb02)
-    {Database_Status[(Varb01 * 12) + 7] += Varb02;} else
-    {if(Database_Status[(Varb01 * 12) + 7] > Varb02) Database_Status[(Varb01 * 12) + 7] = Varb02;}
-   }
-  }
-  void ZVelUp(int Varb01, double Varb02)
-  {
-   if(Varb02 > 0)
-   {
-    if(Database_Status[(Varb01 * 12) + 8] + Varb02 < Varb02)
-    {Database_Status[(Varb01 * 12) + 8] += Varb02;} else
-    {if(Database_Status[(Varb01 * 12) + 8] < Varb02) Database_Status[(Varb01 * 12) + 8] = Varb02;}
-   }
-   if(Varb02 < 0)
-   {
-    if(Database_Status[(Varb01 * 12) + 8] + Varb02 > Varb02)
-    {Database_Status[(Varb01 * 12) + 8] += Varb02;} else
-    {if(Database_Status[(Varb01 * 12) + 8] > Varb02) Database_Status[(Varb01 * 12) + 8] = Varb02;}
-   }
+   if(Database_Control01) GameSystem();
   }
   void Input(bool Varb01, bool Varb02, bool Varb03, bool Varb04, bool Varb05, bool Varb06, bool Varb07, int Varb08)
   {
@@ -2262,177 +796,212 @@
    if(Varb20){Varb09 = 0; Varb11 = 0; if(Varb13 > 200000000 || Database_Input[(Varb08 * 7) + 6] == Database_Input[(Varb08 * 7) + 4]) Varb13 = 0; Varb15 = 0;}
    Database_Cast[Varb08] = Varb09 + Varb10 + Varb11 + Varb12 + Varb13 + Varb14 + Varb15 + Varb16;
   }
-  void RandomSingleFont()
+ //-//
+
+ //Final System
+  void GameSystem()
   {
-   RandomSingleFontCount += 1;
-   if(RandomSingleFontCount > 50) RandomSingleFontCount = 0;
-   switch(RandomSingleFontCount)
-   {
-    case 0: print("A"); break;
-    case 1: print("&"); break;
-    case 2: print("0"); break;
-    case 3: print("^"); break;
-    case 4: print("z"); break;
-    case 5: print("H"); break;
-    case 6: print("7"); break;
-    case 7: print("#"); break;
-    case 8: print("!"); break;
-    case 9: print("b"); break;
-    case 10: print("%"); break;
-    case 11: print("@"); break;
-    case 12: print("n"); break;
-    case 13: print("("); break;
-    case 14: print("E"); break;
-    case 15: print("l"); break;
-    case 16: print("q"); break;
-    case 17: print(")"); break;
-    case 18: print(" "); break;
-    case 19: print("D"); break;
-    case 20: print("e"); break;
-    case 21: print("6"); break;
-    case 22: print("0"); break;
-    case 23: print("1"); break;
-    case 24: print("0"); break;
-    case 25: print("1"); break;
-    case 26: print("*"); break;
-    case 27: print("="); break;
-    case 28: print("V"); break;
-    case 29: print("/"); break;
-    case 30: print("N"); break;
-    case 31: print("i"); break;
-    case 32: print("n"); break;
-    case 33: print("\\"); break;
-    case 34: print("G"); break;
-    case 35: print("}"); break;
-    case 36: print("b"); break;
-    case 37: print("["); break;
-    case 38: print("g"); break;
-    case 39: print("o"); break;
-    case 40: print(";"); break;
-    case 41: print("<"); break;
-    case 42: print("x"); break;
-    case 43: print("'"); break;
-    case 44: print("?"); break;
-    case 45: print("?"); break;
-    default: print(" "); break;
-   }
+   int Varb0001;
+   //Finalizer
+    for(Varb0001 = 0; Varb0001 < NumberOfExist; ++Varb0001)
+    {
+     Control_XR(Database_Exist[Varb0001], Rounding(Database_Status[(Database_Exist[Varb0001] * 12) + 3]));
+     Control_YR(Database_Exist[Varb0001], Rounding(Database_Status[(Database_Exist[Varb0001] * 12) + 4] - YSingularity - (Database_Status[(Database_Exist[Varb0001] * 12) + 4] + Database_ToGround[Database_Exist[Varb0001]])));
+     Control_ZR(Database_Exist[Varb0001], Rounding(Database_Status[(Database_Exist[Varb0001] * 12) + 5] + (Database_Status[(Database_Exist[Varb0001] * 12) + 4] + Database_ToGround[Database_Exist[Varb0001]])));
+     Control_VX(Database_Exist[Varb0001], 0);
+     Control_VY(Database_Exist[Varb0001], 0);
+     Control_VZ(Database_Exist[Varb0001], 0);
+     Control_PicNReserve(Database_Exist[Varb0001], 0, 0);
+     if(Database_HitLag[Database_Exist[Varb0001]] < 0)
+     {
+      Control_Shake(Database_Exist[Varb0001], (Database_HitLag[Database_Exist[Varb0001]] % 2) - 1);
+     } else
+     { 
+      if(Database_HitLag[Database_Exist[Varb0001]] > 0)
+      {
+       Control_Shake(Database_Exist[Varb0001], (Database_HitLag[Database_Exist[Varb0001]] % 2) + 1);
+      } else
+      {
+       Control_Shake(Database_Exist[Varb0001], 0);
+      }
+     }
+    }
+   //-//
+
+   //Debug Menu End
+    if(ConsoleDebug)
+    {
+     switch(ConsoleBuffer)
+     {
+      case 60: print("\n|==================== "); break;
+      case 80: print("\n|============================== "); break;
+      case 100: print("\n|======================================== "); break;
+      case 120: print("\n|================================================== "); break;
+     }
+     int Varb1000 = elapsed_time % 70; int Varb1001 = (ElapsedTime + 35) % 70;
+     if(Varb1000 == 0 || Varb1001 == 19){RandomSingleFont();} else {print("D");}
+     if(Varb1000 == 2 || Varb1001 == 33){RandomSingleFont();} else {print("e");}
+     if(Varb1000 == 1 || Varb1001 == 5){RandomSingleFont();} else {print("b");}
+     if(Varb1000 == 3 || Varb1001 == 11){RandomSingleFont();} else {print("u");}
+     if(Varb1000 == 4 || Varb1001 == 31){RandomSingleFont();} else {print("g");}
+     if(Varb1000 == 7 || Varb1001 == 12){RandomSingleFont();} else {print(" ");}
+     if(Varb1000 == 9 || Varb1001 == 13){RandomSingleFont();} else {print("b");}
+     if(Varb1000 == 2 || Varb1001 == 24){RandomSingleFont();} else {print("y");}
+     if(Varb1000 == 16 || Varb1001 == 27){RandomSingleFont();} else {print(" ");}
+     if(Varb1000 == 34 || Varb1001 == 16){RandomSingleFont();} else {print("M");}
+     if(Varb1000 == 6 || Varb1001 == 29){RandomSingleFont();} else {print("e");}
+     if(Varb1000 == 28 || Varb1001 == 14){RandomSingleFont();} else {print("s");}
+     if(Varb1000 == 25 || Varb1001 == 15){RandomSingleFont();} else {print("u");}
+     if(Varb1000 == 22 || Varb1001 == 16){RandomSingleFont();} else {print("j");}
+     if(Varb1000 == 19 || Varb1001 == 26){RandomSingleFont();} else {print("i");}
+     if(Varb1000 == 30 || Varb1001 == 8){RandomSingleFont();} else {print("n");}
+     switch(ConsoleBuffer)
+     {
+      case 60: print(" ====================|"); break;
+      case 80: print(" ==============================|"); break;
+      case 100: print(" ========================================|"); break;
+      case 120: print(" ==================================================|"); break;
+     }
+     printOut();
+    } else {printLogClear();}
+   //-//
   }
-  void CharPrint(int8 Varb01)
+ //-//
+
+ //Functions
+  void XVelUp(int Varb01, double Varb02){if(Varb02 > 0){if(Database_Status[(Varb01 * 12) + 6] + Varb02 < Varb02){Database_Status[(Varb01 * 12) + 6] += Varb02;} else {if(Database_Status[(Varb01 * 12) + 6] < Varb02) Database_Status[(Varb01 * 12) + 6] = Varb02;}} else {if(Varb02 < 0){if(Database_Status[(Varb01 * 12) + 6] + Varb02 > Varb02){Database_Status[(Varb01 * 12) + 6] += Varb02;} else {if(Database_Status[(Varb01 * 12) + 6] > Varb02) Database_Status[(Varb01 * 12) + 6] = Varb02;}}}}
+  void YVelUp(int Varb01, double Varb02){if(Varb02 > 0){if(Database_Status[(Varb01 * 12) + 7] + Varb02 < Varb02){Database_Status[(Varb01 * 12) + 7] += Varb02;} else {if(Database_Status[(Varb01 * 12) + 7] < Varb02) Database_Status[(Varb01 * 12) + 7] = Varb02;}} else {if(Varb02 < 0){if(Database_Status[(Varb01 * 12) + 7] + Varb02 > Varb02){Database_Status[(Varb01 * 12) + 7] += Varb02;} else {if(Database_Status[(Varb01 * 12) + 7] > Varb02) Database_Status[(Varb01 * 12) + 7] = Varb02;}}}}
+  void ZVelUp(int Varb01, double Varb02){if(Varb02 > 0){if(Database_Status[(Varb01 * 12) + 8] + Varb02 < Varb02){Database_Status[(Varb01 * 12) + 8] += Varb02;} else {if(Database_Status[(Varb01 * 12) + 8] < Varb02) Database_Status[(Varb01 * 12) + 8] = Varb02;}} else {if(Varb02 < 0){if(Database_Status[(Varb01 * 12) + 8] + Varb02 > Varb02){Database_Status[(Varb01 * 12) + 8] += Varb02;} else {if(Database_Status[(Varb01 * 12) + 8] > Varb02) Database_Status[(Varb01 * 12) + 8] = Varb02;}}}}
+  void RandomSingleFont(){RandomSingleFontCount += 1; if(RandomSingleFontCount > 50) RandomSingleFontCount = 0; switch(RandomSingleFontCount){case 0: print("A"); break; case 1: print("&"); break; case 2: print("0"); break; case 3: print("^"); break; case 4: print("z"); break; case 5: print("H"); break; case 6: print("7"); break; case 7: print("#"); break; case 8: print("!"); break; case 9: print("b"); break; case 10: print("%"); break; case 11: print("@"); break; case 12: print("n"); break; case 13: print("("); break; case 14: print("E"); break; case 15: print("l"); break; case 16: print("q"); break; case 17: print(")"); break; case 18: print(" "); break; case 19: print("D"); break; case 20: print("e"); break; case 21: print("6"); break; case 22: print("0"); break; case 23: print("1"); break; case 24: print("0"); break; case 25: print("1"); break; case 26: print("*"); break; case 27: print("="); break; case 28: print("V"); break; case 29: print("/"); break; case 30: print("N"); break; case 31: print("i"); break; case 32: print("n"); break; case 33: print("\\"); break; case 34: print("G"); break; case 35: print("}"); break; case 36: print("b"); break; case 37: print("["); break; case 38: print("g"); break; case 39: print("o"); break; case 40: print(";"); break; case 41: print("<"); break; case 42: print("x"); break; case 43: print("'"); break; case 44: print("?"); break; case 45: print("?"); break; default: print(" "); break;}}
+  void CharPrint(int8 Varb01){switch(Varb01){case 33: print("!"); break; case 34: print('"'); break; case 35: print("#"); break; case 36: print("$"); break; case 37: print("%"); break; case 38: print("&"); break; case 39: print("'"); break; case 40: print("("); break; case 41: print(")"); break; case 42: print("*"); break; case 43: print("+"); break; case 44: print(","); break; case 45: print("-"); break; case 46: print("."); break; case 47: print("/"); break; case 48: print("0"); break; case 49: print("1"); break; case 50: print("2"); break; case 51: print("3"); break; case 52: print("4"); break; case 53: print("5"); break; case 54: print("6"); break; case 55: print("7"); break; case 56: print("8"); break; case 57: print("9"); break; case 58: print(":"); break; case 59: print(';'); break; case 60: print("<"); break; case 61: print("="); break; case 62: print(">"); break; case 63: print("?"); break; case 64: print("@"); break; case 65: print("A"); break; case 66: print("B"); break; case 67: print("C"); break; case 68: print("D"); break; case 69: print("E"); break; case 70: print("F"); break; case 71: print("G"); break; case 72: print("H"); break; case 73: print("I"); break; case 74: print("J"); break; case 75: print("K"); break; case 76: print("L"); break; case 77: print("M"); break; case 78: print("N"); break; case 79: print("O"); break; case 80: print("P"); break; case 81: print("Q"); break; case 82: print("R"); break; case 83: print("S"); break; case 84: print("T"); break; case 85: print("U"); break; case 86: print("V"); break; case 87: print("W"); break; case 88: print("X"); break; case 89: print("Y"); break; case 90: print("Z"); break; case 91: print("["); break; case 92: print("\\"); break; case 93: print("]"); break; case 94: print("^"); break; case 95: print("_"); break; case 96: print("`"); break; case 97: print("a"); break; case 98: print("b"); break; case 99: print("c"); break; case 100: print("d"); break; case 101: print("e"); break; case 102: print("f"); break; case 103: print("g"); break; case 104: print("h"); break; case 105: print("i"); break; case 106: print("j"); break; case 107: print("k"); break; case 108: print("l"); break; case 109: print("m"); break; case 110: print("n"); break; case 111: print("o"); break; case 112: print("p"); break; case 113: print("q"); break; case 114: print("r"); break; case 115: print("s"); break; case 116: print("t"); break; case 117: print("u"); break; case 118: print("v"); break; case 119: print("w"); break; case 120: print("x"); break; case 121: print("y"); break; case 122: print("z"); break; case 123: print("{"); break; case 124: print("|"); break; case 125: print("}"); break; case 126: print("~"); break; default: print(" "); break;}}
+  bool SpecialityCheck(int Varb01, double Varb02){if(game.objects[Varb01].data.walking_frame_rate == Cnvrt_D_I(Varb02)) return true; if(game.objects[Varb01].data.running_frame_rate == Cnvrt_D_I(Varb02)) return true; if(game.objects[Varb01].data.running_speed == Varb02) return true; if(game.objects[Varb01].data.running_speedz == Varb02) return true; if(game.objects[Varb01].data.heavy_walking_speed == Varb02) return true; if(game.objects[Varb01].data.heavy_walking_speedz == Varb02) return true; if(game.objects[Varb01].data.heavy_running_speed == Varb02) return true; if(game.objects[Varb01].data.heavy_running_speedz == Varb02) return true; if(game.objects[Varb01].data.jump_height == Varb02) return true; if(game.objects[Varb01].data.jump_distance == Varb02) return true; if(game.objects[Varb01].data.jump_distancez == Varb02) return true; if(game.objects[Varb01].data.dash_distance == Varb02) return true; if(game.objects[Varb01].data.dash_distancez == Varb02) return true; if(game.objects[Varb01].data.rowing_height == Varb02) return true; if(game.objects[Varb01].data.rowing_distance == Varb02) return true; return false;}
+  bool InputSetUp(int Varb01, int Varb02, int Varb03)
+  {
+   if(game.objects[Varb01].data.frames[Varb02].exists)
+   {
+    switch((game.objects[Varb01].data.frames[Varb02].mp - (game.objects[Varb01].data.frames[Varb02].mp % 10000000)))
+    {
+     case 010000000:
+      if(Database_Status[(Varb01 * 12) + 2] < Cnvrt_I_D((game.objects[Varb01].data.frames[Varb02].mp % 1000) + 1) / 100) return false;
+      if(Database_Status[(Varb01 * 12)] < Cnvrt_I_D((game.objects[Varb01].data.frames[Varb02].mp % 10000000) - (game.objects[Varb01].data.frames[Varb02].mp % 1000)) / 100) return false;
+     break;
+     case 020000000:
+      if(Database_Status[(Varb01 * 12)] < Cnvrt_I_D(game.objects[Varb01].data.frames[Varb02].mp % 1000000) / 10) return false;
+     break;
+     case 030000000:
+      if(Database_Cooldown[(Varb01 * 10) + (((game.objects[Varb01].data.frames[Varb02].mp % 10000000) - (game.objects[Varb01].data.frames[Varb02].mp % 1000000)) / 1000000)] != 0) return false;
+      if(Database_Status[(Varb01 * 12) + 2] < Cnvrt_I_D((game.objects[Varb01].data.frames[Varb02].mp % 1000) + 1) / 100) return false;
+      if(Database_Status[(Varb01 * 12)] < Cnvrt_I_D((game.objects[Varb01].data.frames[Varb02].mp % 1000000) - (game.objects[Varb01].data.frames[Varb02].mp % 1000)) / 100) return false;
+     break;
+     default: break;
+    }
+    switch(Varb03)
+    {
+     case 1:
+      if(game.objects[Varb01].facing){Control_Facing(Varb01, 0);} else {Control_Facing(Varb01, 1);}
+     case 0:
+      Control_Frame1(Varb01, Varb02);
+     return true;
+     case 3:
+      if(game.objects[Varb01].facing){Control_Facing(Varb01, 0);} else {Control_Facing(Varb01, 1);}
+     case 2:
+      Control_Frame1(Varb01, Varb02);
+      if(Database_Input[(Varb01 * 7) + 4] > 1 && Database_Input[(Varb01 * 7) + 6] == 1)
+      {Control_Facing(Varb01, 1);} else
+      {
+       if(Database_Input[(Varb01 * 7) + 4] == 1 && Database_Input[(Varb01 * 7) + 6] > 1)
+       Control_Facing(Varb01, 0);
+      }
+     return true;
+     case 4:
+      Varb02 += RandomValue(1) * 2;
+      if(Database_Held[(Varb01 * 2)] != -1) Varb02 += 1;
+      if(Database_Input[(Varb01 * 7) + 4] > 1 && Database_Input[(Varb01 * 7) + 6] == 1)
+      {Control_Facing(Varb01, 1);} else
+      {
+       if(Database_Input[(Varb01 * 7) + 4] == 1 && Database_Input[(Varb01 * 7) + 6] > 1)
+       Control_Facing(Varb01, 0);
+      }
+      Control_Frame1(Varb01, Varb02);
+     return true;
+     case 7:
+      Control_Frame1(Varb01, Varb02); Database_Cast[Varb01] -= (Database_Cast[Varb01] % 1000000000000) - (Database_Cast[Varb01] % 100000000000);
+     return true;
+     case 8: 
+      Control_Frame1(Varb01, Varb02); if(game.objects[Varb01].facing){Control_Facing(Varb01, 0);} else {Control_Facing(Varb01, 1);} Database_Cast[Varb01] -= (Database_Cast[Varb01] % 1000000000000) - (Database_Cast[Varb01] % 100000000000);
+     return true;
+     case 10:
+      if(game.objects[Varb01].facing){Database_LastVel[Varb01] = 7;} else {Database_LastVel[Varb01] = 3;}
+      Control_Frame1(Varb01, Varb02);
+     return true;
+     case 11:
+      switch(Database_LastVel[Varb01])
+      {
+       case 2:
+       case 3:
+       case 4:
+       case 6:
+       case 7:
+       case 8:
+        Control_Frame1(Varb01, Varb02);
+       return true;
+       default:
+        if((Database_Input[(Varb01 * 7) + 4] > 1 && Database_Input[(Varb01 * 7) + 6] == 1) || (Database_Input[(Varb01 * 7) + 4] == 1 && Database_Input[(Varb01 * 7) + 6] > 1)){Control_Frame1(Varb01, Varb02); return true;}
+       return false;
+      }
+     break;
+     default: break;
+    }
+    return false;
+   } else {return false;}
+  }
+  int RandomValue(int Varb01)
+  {
+   int Varb02 = 0;
+   if(Varb01 > 9) Var02 += Randing(0);
+  }
+  int Randing(int Varb01)
   {
    switch(Varb01)
    {
-    case 33: print("!"); break;
-    case 34: print('"'); break;
-    case 35: print("#"); break;
-    case 36: print("$"); break;
-    case 37: print("%"); break;
-    case 38: print("&"); break;
-    case 39: print("'"); break;
-    case 40: print("("); break;
-    case 41: print(")"); break;
-    case 42: print("*"); break;
-    case 43: print("+"); break;
-    case 44: print(","); break;
-    case 45: print("-"); break;
-    case 46: print("."); break;
-    case 47: print("/"); break;
-
-    case 48: print("0"); break;
-    case 49: print("1"); break;
-    case 50: print("2"); break;
-    case 51: print("3"); break;
-    case 52: print("4"); break;
-    case 53: print("5"); break;
-    case 54: print("6"); break;
-    case 55: print("7"); break;
-    case 56: print("8"); break;
-    case 57: print("9"); break;
-
-    case 58: print(":"); break;
-    case 59: print(';'); break;
-    case 60: print("<"); break;
-    case 61: print("="); break;
-    case 62: print(">"); break;
-    case 63: print("?"); break;
-    case 64: print("@"); break;
-
-    case 65: print("A"); break;
-    case 66: print("B"); break;
-    case 67: print("C"); break;
-    case 68: print("D"); break;
-    case 69: print("E"); break;
-    case 70: print("F"); break;
-    case 71: print("G"); break;
-    case 72: print("H"); break;
-    case 73: print("I"); break;
-    case 74: print("J"); break;
-    case 75: print("K"); break;
-    case 76: print("L"); break;
-    case 77: print("M"); break;
-    case 78: print("N"); break;
-    case 79: print("O"); break;
-    case 80: print("P"); break;
-    case 81: print("Q"); break;
-    case 82: print("R"); break;
-    case 83: print("S"); break;
-    case 84: print("T"); break;
-    case 85: print("U"); break;
-    case 86: print("V"); break;
-    case 87: print("W"); break;
-    case 88: print("X"); break;
-    case 89: print("Y"); break;
-    case 90: print("Z"); break;
-
-    case 91: print("["); break;
-    case 92: print("\\"); break;
-    case 93: print("]"); break;
-    case 94: print("^"); break;
-    case 95: print("_"); break;
-    case 96: print("`"); break;
-
-    case 97: print("a"); break;
-    case 98: print("b"); break;
-    case 99: print("c"); break;
-    case 100: print("d"); break;
-    case 101: print("e"); break;
-    case 102: print("f"); break;
-    case 103: print("g"); break;
-    case 104: print("h"); break;
-    case 105: print("i"); break;
-    case 106: print("j"); break;
-    case 107: print("k"); break;
-    case 108: print("l"); break;
-    case 109: print("m"); break;
-    case 110: print("n"); break;
-    case 111: print("o"); break;
-    case 112: print("p"); break;
-    case 113: print("q"); break;
-    case 114: print("r"); break;
-    case 115: print("s"); break;
-    case 116: print("t"); break;
-    case 117: print("u"); break;
-    case 118: print("v"); break;
-    case 119: print("w"); break;
-    case 120: print("x"); break;
-    case 121: print("y"); break;
-    case 122: print("z"); break;
-
-    case 123: print("{"); break;
-    case 124: print("|"); break;
-    case 125: print("}"); break;
-    case 126: print("~"); break;
-
-    default: print(" "); break;
+    case 0: return (int(((RandomizeSeed % (10 ** ((elapsed_time % 13) + 1))) - (RandomizeSeed % (10 ** (elapsed_time % 13)))) / (10 ** (elapsed_time % 13))));
+    case 1: return (int(((RandomizeSeed % (10 ** ((elapsed_time % 13) + 1))) - (RandomizeSeed % (10 ** (elapsed_time % 13)))) / (10 ** (elapsed_time % 13))) * 10);
+    case 2: return (int(((RandomizeSeed % (10 ** ((elapsed_time % 13) + 1))) - (RandomizeSeed % (10 ** (elapsed_time % 13)))) / (10 ** (elapsed_time % 13))) * 100);
+    case 3: return (int(((RandomizeSeed % (10 ** ((elapsed_time % 13) + 1))) - (RandomizeSeed % (10 ** (elapsed_time % 13)))) / (10 ** (elapsed_time % 13))) * 1000);
+    case 4: return (int(((RandomizeSeed % (10 ** ((elapsed_time % 13) + 1))) - (RandomizeSeed % (10 ** (elapsed_time % 13)))) / (10 ** (elapsed_time % 13))) * 10000);
+    case 5: return (int(((RandomizeSeed % (10 ** ((elapsed_time % 13) + 1))) - (RandomizeSeed % (10 ** (elapsed_time % 13)))) / (10 ** (elapsed_time % 13))) * 100000);
+    case 6: return (int(((RandomizeSeed % (10 ** ((elapsed_time % 13) + 1))) - (RandomizeSeed % (10 ** (elapsed_time % 13)))) / (10 ** (elapsed_time % 13))) * 1000000);
+    case 7: return (int(((RandomizeSeed % (10 ** ((elapsed_time % 13) + 1))) - (RandomizeSeed % (10 ** (elapsed_time % 13)))) / (10 ** (elapsed_time % 13))) * 10000000);
+    case 8: return (int(((RandomizeSeed % (10 ** ((elapsed_time % 13) + 1))) - (RandomizeSeed % (10 ** (elapsed_time % 13)))) / (10 ** (elapsed_time % 13))) * 100000000);
+    default: return 0;
    }
   }
+  int StateEjection(int Varb01, int Varb02, int Varb03){if(game.objects[Varb01].data.frames[Varb02].state > 999999) return (game.objects[Varb01].data.frames[Varb02].state - (game.objects[Varb01].data.frames[Varb02].state % (10 ** Varb03))); return (game.objects[Varb01].data.frames[Varb02].hit_ja - (game.objects[Varb01].data.frames[Varb02].hit_ja % (10 ** Varb03)));}
+  int StateEjection2(int Varb01, int Varb02, int Varb03){if(game.objects[Varb01].data.frames[Varb02].state > 999999) return (game.objects[Varb01].data.frames[Varb02].hit_ja - (game.objects[Varb01].data.frames[Varb02].hit_ja % (10 ** Varb03))); return (game.objects[Varb01].data.frames[Varb02].cpoint.daction - (game.objects[Varb01].data.frames[Varb02].cpoint.daction % (10 ** Varb03)));}
+  int Iabs(int Varb01){if(Varb01 < 0) return (-Varb01); return Varb01;}
+  float Fabs(float Varb01){if(Varb01 < 0) return (-Varb01); return Varb01;}
+  double Dabs(double Varb01){if(Varb01 < 0) return (-Varb01); return Varb01;}
+  double Rounding(double Varb01){return Cnvrt_Round(Varb01);}
  //-//
+
  //GameEnd
 //-//
 
 //AI-System
- void LF2ETAI(int Varb0001)
+ uint LF2ETAI(int Varb0001)
  {
+  if(!InBattle) return 0;
+  bool Varb0002 = false; bool Varb0003 = false; bool Varb0004 = false; bool Varb0005 = false; bool Varb0006 = false; bool Varb0007 = false; bool Varb0008 = false;
+  ///////////////////////
+  
+  if(FlawlessInput)
+  {
+   int Varb0009 = 0;
+  }
 
+  ///////////////////////
+  uint Varb0009 = 0; if(Varb0002) Varb0009 += 1000000; if(Varb0003) Varb0009 += 100000; if(Varb0004) Varb0009 += 10000; if(Varb0005) Varb0009 += 1000; if(Varb0006) Varb0009 += 100; if(Varb0007) Varb0009 += 10; if(Varb0008) Varb0009 += 1;
+  return Varb0009;
  }
  //AIEnd
 //-//
