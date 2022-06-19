@@ -190,6 +190,8 @@
   int8 RandomSingleFontCount;
   int64 ElapsedTime;
   uint64 RandomizeSeed;
+
+  array < int > RandTest = 1500;
  //-//
  
  //Main System
@@ -201,7 +203,8 @@
    //New Battle Reset
     if(elapsed_time == 0)
     {
-     RandomizeSeed = rand(9) + (rand(9) * 10) + (rand(9) * 100) + (rand(9) * 1000) + (rand(9) * 10000) + (rand(9) * 100000) + (rand(9) * 1000000) + (rand(9) * 10000000) + (rand(9) * 100000000) + (rand(9) * 1000000000) + (rand(9) * 10000000000) + (rand(9) * 100000000000) + (rand(9) * 1000000000000);
+     RandHigh = 0; RandLow = 0; RandTest = 1; RandTest[0] = 0; RandTest = 1500;
+     printLogClear(); RandomizeSeed = uint64(rand(10)) + (uint64(rand(10)) * 10) + (uint64(rand(10)) * 100) + (uint64(rand(10)) * 1000) + (uint64(rand(10)) * 10000) + (uint64(rand(10)) * 100000) + (uint64(rand(10)) * 1000000) + (uint64(rand(10)) * 10000000) + (uint64(rand(10)) * 100000000) + (uint64(rand(10)) * 1000000000) + (uint64(rand(10)) * 10000000000) + (uint64(rand(10)) * 100000000000) + (uint64(rand(10)) * 1000000000000) + (uint64(rand(10)) * 10000000000000) + (uint64(rand(10)) * 100000000000000) + (uint64(rand(10)) * 1000000000000000) + (uint64(rand(10)) * 10000000000000000) + (uint64(rand(10)) * 100000000000000000) + (uint64(rand(10)) * 1000000000000000000);
      Randomize = true; RandomSingleFontCount = 0; InBattle = true; Database_Control02 = true; ElapsedTime = -10;
      for(Varb0002 = 0; Varb0002 < MaximumObjNum; ++Varb0002)
      {
@@ -432,15 +435,27 @@
      if(InBattle)
      {
      //Debug's Core
-      print(" ");
-      int Varb0923 = RandomValue(999999);
-      if(Varb0923 < 10){print("00000");} else
-      {if(Varb0923 < 100){print("0000");} else
-      {if(Varb0923 < 1000){print("000");} else
-      {if(Varb0923 < 10000){print("00");} else
-      {if(Varb0923 < 100000){print("0");}}}}}
-      print(Varb0923+" "+RandHigh+" "+RandLow+" "+RandomizeSeed);
-      if(Varb0923 < 500000){RandLow += 1;} else {RandHigh += 1;}
+      print(" Randomize_Seed: "+RandomizeSeed+" ["+rand(1)+"]\n\n Rand_0-1500: ");
+      int Varb0923 = RandomValue(1500);
+      if(Varb0923 < 10){print("0000");} else
+      {if(Varb0923 < 100){print("000");} else
+      {if(Varb0923 < 1000){print("00");} else
+      {if(Varb0923 < 10000){print("0");}}}}
+      if(Varb0923 < 750){RandLow += 1;} else {RandHigh += 1;}
+      print(Varb0923+"\n {High_Count: "+RandHigh+" Low_Count: "+RandLow+"}\n {High_Chance: "+((Cnvrt_I_D(RandHigh) / Cnvrt_I_D(RandHigh + RandLow)) * 100)+"% Low_Chance: "+((Cnvrt_I_D(RandLow) / Cnvrt_I_D(RandHigh + RandLow)) * 100)+"%}\n ______________________________________________________________________________________________________________________\n");
+      RandTest[Varb0923] += 1; int Varb9924 = 0;
+      for(Varb0002 = 0; Varb0002 < 1500; ++Varb0002)
+      if(RandTest[Varb0002] != 0)
+      {
+       if(Varb9924 >= 220){if(Varb9924 == 220) print("\n . . . . "); Varb9924 += 1; continue;}
+       if(Varb9924 % 10 == 0){print("\n [");} else {print(" [");}
+       if(Varb0002 < 10){print("0000");} else
+       {if(Varb0002 < 100){print("000");} else
+       {if(Varb0002 < 1000){print("00");} else
+       {if(Varb0002 < 10000){print("0");}}}}
+       print(Varb0002+"]: "+RandTest[Varb0002]); Varb9924 += 1;
+      }
+      print(Varb9924);
      //-//
      } else
      {
@@ -872,7 +887,7 @@
   void XVelUp(int Varb01, double Varb02){if(Varb02 > 0){if(Database_Status[(Varb01 * 12) + 6] + Varb02 < Varb02){Database_Status[(Varb01 * 12) + 6] += Varb02;} else {if(Database_Status[(Varb01 * 12) + 6] < Varb02) Database_Status[(Varb01 * 12) + 6] = Varb02;}} else {if(Varb02 < 0){if(Database_Status[(Varb01 * 12) + 6] + Varb02 > Varb02){Database_Status[(Varb01 * 12) + 6] += Varb02;} else {if(Database_Status[(Varb01 * 12) + 6] > Varb02) Database_Status[(Varb01 * 12) + 6] = Varb02;}}}}
   void YVelUp(int Varb01, double Varb02){if(Varb02 > 0){if(Database_Status[(Varb01 * 12) + 7] + Varb02 < Varb02){Database_Status[(Varb01 * 12) + 7] += Varb02;} else {if(Database_Status[(Varb01 * 12) + 7] < Varb02) Database_Status[(Varb01 * 12) + 7] = Varb02;}} else {if(Varb02 < 0){if(Database_Status[(Varb01 * 12) + 7] + Varb02 > Varb02){Database_Status[(Varb01 * 12) + 7] += Varb02;} else {if(Database_Status[(Varb01 * 12) + 7] > Varb02) Database_Status[(Varb01 * 12) + 7] = Varb02;}}}}
   void ZVelUp(int Varb01, double Varb02){if(Varb02 > 0){if(Database_Status[(Varb01 * 12) + 8] + Varb02 < Varb02){Database_Status[(Varb01 * 12) + 8] += Varb02;} else {if(Database_Status[(Varb01 * 12) + 8] < Varb02) Database_Status[(Varb01 * 12) + 8] = Varb02;}} else {if(Varb02 < 0){if(Database_Status[(Varb01 * 12) + 8] + Varb02 > Varb02){Database_Status[(Varb01 * 12) + 8] += Varb02;} else {if(Database_Status[(Varb01 * 12) + 8] > Varb02) Database_Status[(Varb01 * 12) + 8] = Varb02;}}}}
-  void RandomSingleFont(){RandomSingleFontCount += 1; if(RandomSingleFontCount > 50) RandomSingleFontCount = 0; switch(RandomSingleFontCount){case 0: print("A"); break; case 1: print("&"); break; case 2: print("0"); break; case 3: print("^"); break; case 4: print("z"); break; case 5: print("H"); break; case 6: print("7"); break; case 7: print("#"); break; case 8: print("!"); break; case 9: print("b"); break; case 10: print("%"); break; case 11: print("@"); break; case 12: print("n"); break; case 13: print("("); break; case 14: print("E"); break; case 15: print("l"); break; case 16: print("q"); break; case 17: print(")"); break; case 18: print(" "); break; case 19: print("D"); break; case 20: print("e"); break; case 21: print("6"); break; case 22: print("0"); break; case 23: print("1"); break; case 24: print("0"); break; case 25: print("1"); break; case 26: print("*"); break; case 27: print("="); break; case 28: print("V"); break; case 29: print("/"); break; case 30: print("N"); break; case 31: print("i"); break; case 32: print("n"); break; case 33: print("\\"); break; case 34: print("G"); break; case 35: print("}"); break; case 36: print("b"); break; case 37: print("["); break; case 38: print("g"); break; case 39: print("o"); break; case 40: print(";"); break; case 41: print("<"); break; case 42: print("x"); break; case 43: print("'"); break; case 44: print("?"); break; case 45: print("?"); break; default: print(" "); break;}}
+  void RandomSingleFont(){RandomSingleFontCount += 1; if(RandomSingleFontCount > 1500) RandomSingleFontCount = 0; switch((RandomSingleFontCount % 48)){case 0: print("A"); break; case 1: print("&"); break; case 2: print("0"); break; case 3: print("^"); break; case 4: print("z"); break; case 5: print("H"); break; case 6: print("7"); break; case 7: print("#"); break; case 8: print("!"); break; case 9: print("b"); break; case 10: print("%"); break; case 11: print("@"); break; case 12: print("n"); break; case 13: print("("); break; case 14: print("E"); break; case 15: print("l"); break; case 16: print("q"); break; case 17: print(")"); break; case 18: print(" "); break; case 19: print("D"); break; case 20: print("e"); break; case 21: print("6"); break; case 22: print("0"); break; case 23: print("1"); break; case 24: print("0"); break; case 25: print("1"); break; case 26: print("*"); break; case 27: print("="); break; case 28: print("V"); break; case 29: print("/"); break; case 30: print("N"); break; case 31: print("i"); break; case 32: print("n"); break; case 33: print("\\"); break; case 34: print("G"); break; case 35: print("}"); break; case 36: print("b"); break; case 37: print("["); break; case 38: print("g"); break; case 39: print("o"); break; case 40: print(";"); break; case 41: print("<"); break; case 42: print("x"); break; case 43: print("'"); break; case 44: print("?"); break; case 45: print("?"); break; default: print(" "); break;}}
   void CharPrint(int8 Varb01){switch(Varb01){case 33: print("!"); break; case 34: print('"'); break; case 35: print("#"); break; case 36: print("$"); break; case 37: print("%"); break; case 38: print("&"); break; case 39: print("'"); break; case 40: print("("); break; case 41: print(")"); break; case 42: print("*"); break; case 43: print("+"); break; case 44: print(","); break; case 45: print("-"); break; case 46: print("."); break; case 47: print("/"); break; case 48: print("0"); break; case 49: print("1"); break; case 50: print("2"); break; case 51: print("3"); break; case 52: print("4"); break; case 53: print("5"); break; case 54: print("6"); break; case 55: print("7"); break; case 56: print("8"); break; case 57: print("9"); break; case 58: print(":"); break; case 59: print(';'); break; case 60: print("<"); break; case 61: print("="); break; case 62: print(">"); break; case 63: print("?"); break; case 64: print("@"); break; case 65: print("A"); break; case 66: print("B"); break; case 67: print("C"); break; case 68: print("D"); break; case 69: print("E"); break; case 70: print("F"); break; case 71: print("G"); break; case 72: print("H"); break; case 73: print("I"); break; case 74: print("J"); break; case 75: print("K"); break; case 76: print("L"); break; case 77: print("M"); break; case 78: print("N"); break; case 79: print("O"); break; case 80: print("P"); break; case 81: print("Q"); break; case 82: print("R"); break; case 83: print("S"); break; case 84: print("T"); break; case 85: print("U"); break; case 86: print("V"); break; case 87: print("W"); break; case 88: print("X"); break; case 89: print("Y"); break; case 90: print("Z"); break; case 91: print("["); break; case 92: print("\\"); break; case 93: print("]"); break; case 94: print("^"); break; case 95: print("_"); break; case 96: print("`"); break; case 97: print("a"); break; case 98: print("b"); break; case 99: print("c"); break; case 100: print("d"); break; case 101: print("e"); break; case 102: print("f"); break; case 103: print("g"); break; case 104: print("h"); break; case 105: print("i"); break; case 106: print("j"); break; case 107: print("k"); break; case 108: print("l"); break; case 109: print("m"); break; case 110: print("n"); break; case 111: print("o"); break; case 112: print("p"); break; case 113: print("q"); break; case 114: print("r"); break; case 115: print("s"); break; case 116: print("t"); break; case 117: print("u"); break; case 118: print("v"); break; case 119: print("w"); break; case 120: print("x"); break; case 121: print("y"); break; case 122: print("z"); break; case 123: print("{"); break; case 124: print("|"); break; case 125: print("}"); break; case 126: print("~"); break; default: print(" "); break;}}
   bool SpecialityCheck(int Varb01, double Varb02){if(game.objects[Varb01].data.walking_frame_rate == Cnvrt_D_I(Varb02)) return true; if(game.objects[Varb01].data.running_frame_rate == Cnvrt_D_I(Varb02)) return true; if(game.objects[Varb01].data.running_speed == Varb02) return true; if(game.objects[Varb01].data.running_speedz == Varb02) return true; if(game.objects[Varb01].data.heavy_walking_speed == Varb02) return true; if(game.objects[Varb01].data.heavy_walking_speedz == Varb02) return true; if(game.objects[Varb01].data.heavy_running_speed == Varb02) return true; if(game.objects[Varb01].data.heavy_running_speedz == Varb02) return true; if(game.objects[Varb01].data.jump_height == Varb02) return true; if(game.objects[Varb01].data.jump_distance == Varb02) return true; if(game.objects[Varb01].data.jump_distancez == Varb02) return true; if(game.objects[Varb01].data.dash_distance == Varb02) return true; if(game.objects[Varb01].data.dash_distancez == Varb02) return true; if(game.objects[Varb01].data.rowing_height == Varb02) return true; if(game.objects[Varb01].data.rowing_distance == Varb02) return true; return false;}
   bool InputSetUp(int Varb01, int Varb02, int Varb03)
@@ -957,24 +972,174 @@
   }
   int RandomValue(int Varb01)
   {
-   int Varb02 = 0;
-   if(Varb01 > 9) Var02 += Randing(0);
+   Randomize = !Randomize;
+   int Varb02 = Cnvrt_D_I(Rounding(Cnvrt_I_D(Varb01) * (Cnvrt_I_D(Reranding(Reranding(Randing())) + (Reranding(Reranding(Randing())) * 10) + (Reranding(Reranding(Randing())) * 100) + (Reranding(Reranding(Randing())) * 1000) + (Reranding(Reranding(Randing())) * 10000) + (Reranding(Reranding(Randing())) * 100000) + (Reranding(Reranding(Randing())) * 1000000) + (Reranding(Reranding(Randing())) * 1000000) + (Reranding(Reranding(Randing())) * 10000000) + (Reranding(Reranding(Randing())) * 100000000)) * 0.000000001)));
+   if(Varb02 > Varb01) return Varb01;
+   return Varb02;
   }
-  int Randing(int Varb01)
+  int Randing()
   {
+   switch(((Iabs(ElapsedTime) + RandomSingleFontCount) % 19))
+   {
+    case 0: return int(RandomizeSeed % 10);
+    case 1: return int(((RandomizeSeed % 100) - (RandomizeSeed % 10)) / 10);
+    case 2: return int(((RandomizeSeed % 1000) - (RandomizeSeed % 100)) / 100);
+    case 3: return int(((RandomizeSeed % 10000) - (RandomizeSeed % 1000)) / 1000);
+    case 4: return int(((RandomizeSeed % 100000) - (RandomizeSeed % 10000)) / 10000);
+    case 5: return int(((RandomizeSeed % 1000000) - (RandomizeSeed % 100000)) / 100000);
+    case 6: return int(((RandomizeSeed % 10000000) - (RandomizeSeed % 1000000)) / 1000000);
+    case 7: return int(((RandomizeSeed % 100000000) - (RandomizeSeed % 10000000)) / 10000000);
+    case 8: return int(((RandomizeSeed % 1000000000) - (RandomizeSeed % 100000000)) / 100000000);
+    case 9: return int(((RandomizeSeed % 10000000000) - (RandomizeSeed % 1000000000)) / 1000000000);
+    case 10: return int(((RandomizeSeed % 100000000000) - (RandomizeSeed % 10000000000)) / 10000000000);
+    case 11: return int(((RandomizeSeed % 1000000000000) - (RandomizeSeed % 100000000000)) / 100000000000);
+    case 12: return int(((RandomizeSeed % 10000000000000) - (RandomizeSeed % 1000000000000)) / 1000000000000);
+    case 13: return int(((RandomizeSeed % 100000000000000) - (RandomizeSeed % 10000000000000)) / 10000000000000);
+    case 14: return int(((RandomizeSeed % 1000000000000000) - (RandomizeSeed % 100000000000000)) / 100000000000000);
+    case 15: return int(((RandomizeSeed % 10000000000000000) - (RandomizeSeed % 1000000000000000)) / 1000000000000000);
+    case 16: return int(((RandomizeSeed % 100000000000000000) - (RandomizeSeed % 10000000000000000)) / 10000000000000000);
+    case 17: return int(((RandomizeSeed % 1000000000000000000) - (RandomizeSeed % 100000000000000000)) / 100000000000000000);
+    case 18: return int(((RandomizeSeed % 10000000000000000000) - (RandomizeSeed % 1000000000000000000)) / 1000000000000000000);
+    default: break;
+   }
+   return 0;
+  }
+  int Reranding(int Varb01)
+  {
+   RandomSingleFontCount += 1; if(RandomSingleFontCount > 1500) RandomSingleFontCount = 0; int Varb02;
+   if(ElapsedTime % 2 == 0)
+   {
+    if(Randomize){Varb02 = (RandomSingleFontCount + (Randing() * 2)) % 26; Randomize = false;} else {Varb02 = Iabs(RandomSingleFontCount + (ElapsedTime % 77)) % 38; Randomize = true;}
+   } else
+   {
+    if(Randomize){Varb02 = Iabs(RandomSingleFontCount + Randing() - (ElapsedTime % 36)) % 42; Randomize = false;} else {Varb02 = Iabs(RandomSingleFontCount - (Randing() * 2) + (ElapsedTime % 53)) % 40; Randomize = true;}
+   }
    switch(Varb01)
    {
-    case 0: return (int(((RandomizeSeed % (10 ** ((elapsed_time % 13) + 1))) - (RandomizeSeed % (10 ** (elapsed_time % 13)))) / (10 ** (elapsed_time % 13))));
-    case 1: return (int(((RandomizeSeed % (10 ** ((elapsed_time % 13) + 1))) - (RandomizeSeed % (10 ** (elapsed_time % 13)))) / (10 ** (elapsed_time % 13))) * 10);
-    case 2: return (int(((RandomizeSeed % (10 ** ((elapsed_time % 13) + 1))) - (RandomizeSeed % (10 ** (elapsed_time % 13)))) / (10 ** (elapsed_time % 13))) * 100);
-    case 3: return (int(((RandomizeSeed % (10 ** ((elapsed_time % 13) + 1))) - (RandomizeSeed % (10 ** (elapsed_time % 13)))) / (10 ** (elapsed_time % 13))) * 1000);
-    case 4: return (int(((RandomizeSeed % (10 ** ((elapsed_time % 13) + 1))) - (RandomizeSeed % (10 ** (elapsed_time % 13)))) / (10 ** (elapsed_time % 13))) * 10000);
-    case 5: return (int(((RandomizeSeed % (10 ** ((elapsed_time % 13) + 1))) - (RandomizeSeed % (10 ** (elapsed_time % 13)))) / (10 ** (elapsed_time % 13))) * 100000);
-    case 6: return (int(((RandomizeSeed % (10 ** ((elapsed_time % 13) + 1))) - (RandomizeSeed % (10 ** (elapsed_time % 13)))) / (10 ** (elapsed_time % 13))) * 1000000);
-    case 7: return (int(((RandomizeSeed % (10 ** ((elapsed_time % 13) + 1))) - (RandomizeSeed % (10 ** (elapsed_time % 13)))) / (10 ** (elapsed_time % 13))) * 10000000);
-    case 8: return (int(((RandomizeSeed % (10 ** ((elapsed_time % 13) + 1))) - (RandomizeSeed % (10 ** (elapsed_time % 13)))) / (10 ** (elapsed_time % 13))) * 100000000);
-    default: return 0;
+    case 0: switch(Varb02)
+    {
+     case 0: return 0;
+     case 1: return 1;
+     case 2: return 2;
+     case 3: return 3;
+     case 4: return 4;
+     case 5: return 5;
+     case 6: return 6;
+     case 7: return 7;
+     case 8: return 8;
+     case 9: return 9;
+     case 10: return 0;
+     case 11: return 1;
+     case 12: return 2;
+     case 13: return 3;
+     case 14: return 4;
+     case 15: return 5;
+     case 16: return 6;
+     case 17: return 7;
+     case 18: return 8;
+     case 19: return 9;
+     case 20: return 0;
+     case 21: return 1;
+     case 22: return 2;
+     case 23: return 3;
+     case 24: return 4;
+     case 25: return 5;
+     case 26: return 6;
+     case 27: return 7;
+     case 28: return 8;
+     case 29: return 9;
+     case 30: return 0;
+     case 31: return 1;
+     case 32: return 2;
+     case 33: return 3;
+     case 34: return 4;
+     case 35: return 5;
+     case 36: return 6;
+     case 37: return 7;
+     case 38: return 8;
+     case 39: return 9;
+     case 40: return 0;
+     default: return 1;
+    }
+    case 1: switch(Varb02)
+    {
+     case 0: return 1; case 1: return 2; case 2: return 3; case 3: return 4; case 4: return 5; case 5: return 6; case 6: return 7; case 7: return 8; case 8: return 9; case 9: return 0; case 10: return 1; case 11: return 2; case 12: return 3; case 13: return 4; case 14: return 5; case 15: return 6; case 16: return 7; case 17: return 8; case 18: return 9; case 19: return 0; case 20: return 1; case 21: return 2; case 22: return 3; case 23: return 4; case 24: return 5; case 25: return 6; case 26: return 7; case 27: return 8; case 28: return 9; case 29: return 0; case 30: return 1; case 31: return 2; case 32: return 3; case 33: return 4; case 34: return 5; case 35: return 6; case 36: return 7; case 37: return 8; case 38: return 9; case 39: return 0; case 40: return 1; default: return 2;
+    }
+    case 2: switch(Varb02)
+    {
+     case 0: return 2; case 1: return 3; case 2: return 4; case 3: return 5; case 4: return 6; case 5: return 7; case 6: return 8; case 7: return 9; case 8: return 0; case 9: return 1; case 10: return 2; case 11: return 3; case 12: return 4; case 13: return 5; case 14: return 6; case 15: return 7; case 16: return 8; case 17: return 9; case 18: return 0; case 19: return 1; case 20: return 2; case 21: return 3; case 22: return 4; case 23: return 5; case 24: return 6; case 25: return 7; case 26: return 8; case 27: return 9; case 28: return 0; case 29: return 1; case 30: return 2; case 31: return 3; case 32: return 4; case 33: return 5; case 34: return 6; case 35: return 7; case 36: return 8; case 37: return 9; case 38: return 0; case 39: return 1; case 40: return 2; default: return 3;
+    }
+    case 3: switch(Varb02)
+    {
+     case 0: return 3; case 1: return 4; case 2: return 5; case 3: return 6; case 4: return 7; case 5: return 8; case 6: return 9; case 7: return 0; case 8: return 1; case 9: return 2; case 10: return 3; case 11: return 4; case 12: return 5; case 13: return 6; case 14: return 7; case 15: return 8; case 16: return 9; case 17: return 0; case 18: return 1; case 19: return 2; case 20: return 3; case 21: return 4; case 22: return 5; case 23: return 6; case 24: return 7; case 25: return 8; case 26: return 9; case 27: return 0; case 28: return 1; case 29: return 2; case 30: return 3; case 31: return 4; case 32: return 5; case 33: return 6; case 34: return 7; case 35: return 8; case 36: return 9; case 37: return 0; case 38: return 1; case 39: return 2; case 40: return 3; default: return 4;
+    }
+    case 4: switch(Varb02)
+    {
+     case 0: return 4; case 1: return 5; case 2: return 6; case 3: return 7; case 4: return 8; case 5: return 9; case 6: return 0; case 7: return 1; case 8: return 2; case 9: return 3; case 10: return 4; case 11: return 5; case 12: return 6; case 13: return 7; case 14: return 8; case 15: return 9; case 16: return 0; case 17: return 1; case 18: return 2; case 19: return 3; case 20: return 4; case 21: return 5; case 22: return 6; case 23: return 7; case 24: return 8; case 25: return 9; case 26: return 0; case 27: return 1; case 28: return 2; case 29: return 3; case 30: return 4; case 31: return 5; case 32: return 6; case 33: return 7; case 34: return 8; case 35: return 9; case 36: return 0; case 37: return 1; case 38: return 2; case 39: return 3; case 40: return 4; default: return 5;
+    }
+    case 5: switch(Varb02)
+    {
+     case 0: return 5; case 1: return 6; case 2: return 7; case 3: return 8; case 4: return 9; case 5: return 0; case 6: return 1; case 7: return 2; case 8: return 3; case 9: return 4; case 10: return 5; case 11: return 6; case 12: return 7; case 13: return 8; case 14: return 9; case 15: return 0; case 16: return 1; case 17: return 2; case 18: return 3; case 19: return 4; case 20: return 5; case 21: return 6; case 22: return 7; case 23: return 8; case 24: return 9; case 25: return 0; case 26: return 1; case 27: return 2; case 28: return 3; case 29: return 4; case 30: return 5; case 31: return 6; case 32: return 7; case 33: return 8; case 34: return 9; case 35: return 0; case 36: return 1; case 37: return 2; case 38: return 3; case 39: return 4; case 40: return 5; default: return 6;
+    }
+    case 6: switch(Varb02)
+    {
+     case 0: return 6; case 1: return 7; case 2: return 8; case 3: return 9; case 4: return 0; case 5: return 1; case 6: return 2; case 7: return 3; case 8: return 4; case 9: return 5; case 10: return 6; case 11: return 7; case 12: return 8; case 13: return 9; case 14: return 0; case 15: return 1; case 16: return 2; case 17: return 3; case 18: return 4; case 19: return 5; case 20: return 6; case 21: return 7; case 22: return 8; case 23: return 9; case 24: return 0; case 25: return 1; case 26: return 2; case 27: return 3; case 28: return 4; case 29: return 5; case 30: return 6; case 31: return 7; case 32: return 8; case 33: return 9; case 34: return 0; case 35: return 1; case 36: return 2; case 37: return 3; case 38: return 4; case 39: return 5; case 40: return 6; default: return 7;
+    }
+    case 7: switch(Varb02)
+    {
+     case 0: return 7; case 1: return 8; case 2: return 9; case 3: return 0; case 4: return 1; case 5: return 2; case 6: return 3; case 7: return 4; case 8: return 5; case 9: return 6; case 10: return 7; case 11: return 8; case 12: return 9; case 13: return 0; case 14: return 1; case 15: return 2; case 16: return 3; case 17: return 4; case 18: return 5; case 19: return 6; case 20: return 7; case 21: return 8; case 22: return 9; case 23: return 0; case 24: return 1; case 25: return 2; case 26: return 3; case 27: return 4; case 28: return 5; case 29: return 6; case 30: return 7; case 31: return 8; case 32: return 9; case 33: return 0; case 34: return 1; case 35: return 2; case 36: return 3; case 37: return 4; case 38: return 5; case 39: return 6; case 40: return 7; default: return 8;
+    }
+    case 8: switch(Varb02)
+    {
+     case 0: return 8; case 1: return 9; case 2: return 0; case 3: return 1; case 4: return 2; case 5: return 3; case 6: return 4; case 7: return 5; case 8: return 6; case 9: return 7; case 10: return 8; case 11: return 9; case 12: return 0; case 13: return 1; case 14: return 2; case 15: return 3; case 16: return 4; case 17: return 5; case 18: return 6; case 19: return 7; case 20: return 8; case 21: return 9; case 22: return 0; case 23: return 1; case 24: return 2; case 25: return 3; case 26: return 4; case 27: return 5; case 28: return 6; case 29: return 7; case 30: return 8; case 31: return 9; case 32: return 0; case 33: return 1; case 34: return 2; case 35: return 3; case 36: return 4; case 37: return 5; case 38: return 6; case 39: return 7; case 40: return 8; default: return 9;
+    }
+    default: switch(Varb02)
+    {
+     case 0: return 9;
+     case 1: return 8;
+     case 2: return 7;
+     case 3: return 6;
+     case 4: return 5;
+     case 5: return 4;
+     case 6: return 3;
+     case 7: return 2;
+     case 8: return 1;
+     case 9: return 0;
+     case 10: return 9;
+     case 11: return 8;
+     case 12: return 7;
+     case 13: return 6;
+     case 14: return 5;
+     case 15: return 4;
+     case 16: return 3;
+     case 17: return 2;
+     case 18: return 1;
+     case 19: return 0;
+     case 20: return 9;
+     case 21: return 8;
+     case 22: return 7;
+     case 23: return 6;
+     case 24: return 5;
+     case 25: return 4;
+     case 26: return 3;
+     case 27: return 2;
+     case 28: return 1;
+     case 29: return 0;
+     case 30: return 9;
+     case 31: return 8;
+     case 32: return 7;
+     case 33: return 6;
+     case 34: return 5;
+     case 35: return 4;
+     case 36: return 3;
+     case 37: return 2;
+     case 38: return 1;
+     case 39: return 0;
+     case 40: return 9;
+     default: return 8;
+    }
    }
+   return 0;
   }
   int StateEjection(int Varb01, int Varb02, int Varb03){if(game.objects[Varb01].data.frames[Varb02].state > 999999) return (game.objects[Varb01].data.frames[Varb02].state - (game.objects[Varb01].data.frames[Varb02].state % (10 ** Varb03))); return (game.objects[Varb01].data.frames[Varb02].hit_ja - (game.objects[Varb01].data.frames[Varb02].hit_ja % (10 ** Varb03)));}
   int StateEjection2(int Varb01, int Varb02, int Varb03){if(game.objects[Varb01].data.frames[Varb02].state > 999999) return (game.objects[Varb01].data.frames[Varb02].hit_ja - (game.objects[Varb01].data.frames[Varb02].hit_ja % (10 ** Varb03))); return (game.objects[Varb01].data.frames[Varb02].cpoint.daction - (game.objects[Varb01].data.frames[Varb02].cpoint.daction % (10 ** Varb03)));}
